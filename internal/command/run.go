@@ -26,6 +26,7 @@ func newApp() *cli.Command {
 			InitLocalCommand(),
 			InitUserCommand(),
 			InitGlobalCommand(),
+			ConfigCommand(),
 			ProfileCommand(),
 			VersionCommand(),
 			ClaudeCommand(),
