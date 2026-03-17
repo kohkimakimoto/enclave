@@ -12,9 +12,8 @@ import (
 
 func SkillCommand() *cli.Command {
 	return &cli.Command{
-		Name:               "skill",
-		Usage:              "Print the Claude Code skill definition and exit",
-		CustomHelpTemplate: HelpTemplate,
+		Name:  "skill",
+		Usage: "Print the Claude Code skill definition and exit",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "install",
