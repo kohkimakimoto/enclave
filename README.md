@@ -306,15 +306,15 @@ The following environment variables are set by claude-sandbox and available to t
 
 ## Agent Skill
 
-`claude-sandbox` provides an Agent Skill that teaches your Claude Code about the sandbox environment — how to check sandbox status, inspect the configuration, and run commands outside the sandbox via `unboxexec`.
+`claude-sandbox` provides an Agent Skill that helps Claude Code understand the sandbox environment — how to check sandbox status, inspect the configuration, and run commands outside the sandbox via `unboxexec`.
 
-Print the skill definition:
+The following command outputs the contents of SKILL.md to standard output:
 
 ```bash
 claude-sandbox skill
 ```
 
-Install the skill to `.claude/skills/claude-sandbox/SKILL.md` in the current project:
+You can also install the skill in the current project at `.claude/skills/claude-sandbox/SKILL.md` using the following command:
 
 ```bash
 claude-sandbox skill --install
