@@ -19,6 +19,7 @@ Table of Contents:
   - [`[unboxexec]` Section](#unboxexec-section)
   - [Sandbox Profile Parameters](#sandbox-profile-parameters)
   - [Viewing the Sandbox Profile](#viewing-the-sandbox-profile)
+  - [Viewing the Effective Configuration](#viewing-the-effective-configuration)
 - [Sandbox-External Command Execution](#sandbox-external-command-execution)
   - [The `unboxexec` Subcommand](#the-unboxexec-subcommand)
     - [Options](#options)
@@ -26,7 +27,7 @@ Table of Contents:
   - [Command Restrictions](#command-restrictions)
   - [Architecture](#architecture)
 - [Environment Variables](#environment-variables)
-- [Recommended Context Configuration](#recommended-context-configuration)
+- [Agent Skill](#agent-skill)
 - [License](#license)
 
 
@@ -196,6 +197,33 @@ claude-sandbox profile
 
 The sandbox uses macOS's `sandbox-exec` (Apple Seatbelt) technology. Even if Claude Code tried to execute a command like `rm -rf /usr/bin` or modify system configuration files, the sandbox would block these operations.
 
+### Viewing the Effective Configuration
+
+You can view the effective configuration (merged from all config files) and see which config files are loaded:
+
+```bash
+claude-sandbox config
+```
+
+Example output:
+
+```toml
+# Loaded config files:
+#   user:    /Users/yourname/.claude/sandbox.toml
+#   project: .claude/sandbox.toml
+#   local:   (none)
+
+[sandbox]
+workdir    = ""
+claude_bin = ""
+profile    = ""
+
+[unboxexec]
+allowed_commands = [
+  "^playwright-cli",
+]
+```
+
 ## Sandbox-External Command Execution
 
 Some tools (e.g. Playwright) cannot run inside the macOS sandbox because they use their own sandboxing mechanisms, which conflict with the nested sandbox environment.
@@ -276,11 +304,23 @@ The following environment variables are set by claude-sandbox and available to t
 | `CLAUDE_SANDBOX_WORKDIR` | Working directory used for sandbox execution |
 | `CLAUDE_SANDBOX_CLAUDE_BIN` | Path to the claude binary used |
 
-## Recommended Context Configuration
+## Agent Skill
 
-To ensure Claude Code understands the sandbox environment, copy the contents of [rules/sandbox.md](rules/sandbox.md) into your `.claude/rules/` directory (project-level) or `~/.claude/rules/` (user-level). The rule file is just an example and you may need to adjust it based on your specific use case and the commands you want to allow outside the sandbox.
+`claude-sandbox` provides an Agent Skill that teaches your Claude Code about the sandbox environment — how to check sandbox status, inspect the configuration, and run commands outside the sandbox via `unboxexec`.
 
-For more details on how rules work, see the [Claude Code memory documentation](https://code.claude.com/docs/en/memory).
+Print the skill definition:
+
+```bash
+claude-sandbox skill
+```
+
+Install the skill to `.claude/skills/claude-sandbox/SKILL.md` in the current project:
+
+```bash
+claude-sandbox skill --install
+```
+
+Once installed, Claude Code will automatically load the skill and understand how to work within the sandbox environment.
 
 ## License
 
