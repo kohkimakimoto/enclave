@@ -38,7 +38,10 @@ func TestConfigCommand(t *testing.T) {
 		testChdirTemp(t)
 
 		toml := "[unboxexec]\nallowed_commands = [\"^playwright-cli\", \"^my-tool\"]\n"
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -62,7 +65,10 @@ func TestConfigCommand(t *testing.T) {
 
 		profile := "(version 1)\n(allow default)\n(deny file-write*)\n"
 		toml := "[sandbox]\nprofile = '''\n" + profile + "'''\n"
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -89,7 +95,10 @@ func TestConfigCommand(t *testing.T) {
 		// Write the profile value directly via basic string in TOML to embed '''
 		profileContent := "line1\n'''\nline3\n"
 		toml := "[sandbox]\nprofile = \"line1\\n'''\\nline3\\n\"\n"
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -112,16 +121,19 @@ func TestConfigCommand(t *testing.T) {
 		fakeHome := testSetupFakeHome(t)
 		dir := testChdirTemp(t)
 
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(""), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0755); err != nil {
+		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.toml"), []byte(""), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.local.toml"), []byte(""), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.toml"), []byte(""), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.local.toml"), []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
 

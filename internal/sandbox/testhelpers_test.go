@@ -1,4 +1,4 @@
-package command
+package sandbox
 
 import (
 	"os"

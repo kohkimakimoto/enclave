@@ -56,11 +56,11 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Create .claude directory if it doesn't exist
-	if err := os.MkdirAll(filepath.Join(workdir, ".claude"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(workdir, ".claude"), 0o755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	if err := os.WriteFile(configFile, []byte(projectConfigTemplate()), 0644); err != nil {
+	if err := os.WriteFile(configFile, []byte(projectConfigTemplate()), 0o644); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
