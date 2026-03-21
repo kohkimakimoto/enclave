@@ -31,7 +31,10 @@ func TestInitUserCommand(t *testing.T) {
 
 		// Pre-create the config file
 		existing := filepath.Join(fakeHome, ".claude", "sandbox.toml")
-		if err := os.WriteFile(existing, []byte(""), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Dir(existing), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(existing, []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
 

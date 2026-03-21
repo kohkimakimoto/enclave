@@ -24,7 +24,10 @@ func TestProfileCommand(t *testing.T) {
 		testChdirTemp(t)
 
 		// Write user-level config with a custom profile
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(tomlProfile(userProfile)), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(tomlProfile(userProfile)), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -46,15 +49,18 @@ func TestProfileCommand(t *testing.T) {
 		dir := testChdirTemp(t)
 
 		// User config sets one profile
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(tomlProfile(userProfile)), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(tomlProfile(userProfile)), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
 		// Project config overrides with a different profile
-		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.toml"), []byte(tomlProfile(projectProfile)), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.toml"), []byte(tomlProfile(projectProfile)), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -75,17 +81,17 @@ func TestProfileCommand(t *testing.T) {
 		testSetupFakeHome(t)
 		dir := testChdirTemp(t)
 
-		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
 			t.Fatal(err)
 		}
 
 		// Project config sets one profile
-		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.toml"), []byte(tomlProfile(projectProfile)), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.toml"), []byte(tomlProfile(projectProfile)), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
 		// Local config overrides with a different profile
-		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.local.toml"), []byte(tomlProfile(localProfile)), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.local.toml"), []byte(tomlProfile(localProfile)), 0o644); err != nil {
 			t.Fatal(err)
 		}
 

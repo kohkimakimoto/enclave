@@ -36,11 +36,11 @@ func skillAction(ctx context.Context, cmd *cli.Command) error {
 func skillInstall(cmd *cli.Command) error {
 	dest := filepath.Join(".claude", "skills", "claude-sandbox", "SKILL.md")
 
-	if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	if err := os.WriteFile(dest, skill.Content, 0644); err != nil {
+	if err := os.WriteFile(dest, skill.Content, 0o644); err != nil {
 		return fmt.Errorf("failed to write skill: %w", err)
 	}
 

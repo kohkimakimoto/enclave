@@ -55,10 +55,10 @@ func TestGetClaudeBin(t *testing.T) {
 		})
 
 		localClaude := filepath.Join(fakeHome, ".claude", "local", "claude")
-		if err := os.MkdirAll(filepath.Dir(localClaude), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(localClaude), 0o755); err != nil {
 			t.Fatalf("failed to create dirs: %v", err)
 		}
-		if err := os.WriteFile(localClaude, []byte("#!/bin/sh"), 0755); err != nil {
+		if err := os.WriteFile(localClaude, []byte("#!/bin/sh"), 0o755); err != nil {
 			t.Fatalf("failed to create fake claude binary: %v", err)
 		}
 

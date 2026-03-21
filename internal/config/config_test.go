@@ -16,7 +16,7 @@ allowed_commands = [
     "^echo hello",
 ]
 `
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
 	}
 
@@ -50,7 +50,7 @@ allowed_commands = [
     "^playwright-cli",
 ]
 `
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
 	}
 
@@ -84,7 +84,7 @@ profile = '''
 (deny file-write*)
 '''
 `
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
 	}
 
@@ -107,7 +107,7 @@ func TestLoadConfigSandboxDefaults(t *testing.T) {
 [unboxexec]
 allowed_commands = ["^echo"]
 `
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
 	}
 
@@ -157,7 +157,7 @@ func TestLoadMissingFile(t *testing.T) {
 func TestLoadInvalidTOML(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
-	if err := os.WriteFile(path, []byte("invalid [[[ toml"), 0644); err != nil {
+	if err := os.WriteFile(path, []byte("invalid [[[ toml"), 0o644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
 	}
 
@@ -284,7 +284,7 @@ func setupHome(t *testing.T, dir string) func() {
 	if err := os.Setenv("HOME", dir); err != nil {
 		t.Fatalf("failed to set HOME: %v", err)
 	}
-	if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
 		t.Fatalf("failed to create home .claude dir: %v", err)
 	}
 	return func() {
@@ -306,7 +306,7 @@ func TestLoadUserOnly(t *testing.T) {
 workdir = "/from-user"
 [unboxexec]
 allowed_commands = ["^user-cmd"]
-`), 0644); err != nil {
+`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -350,7 +350,7 @@ workdir = "/from-user"
 claude_bin = "/user/claude"
 [unboxexec]
 allowed_commands = ["^user-cmd"]
-`), 0644); err != nil {
+`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -369,7 +369,7 @@ allowed_commands = ["^user-cmd"]
 		}
 	}()
 
-	if err := os.MkdirAll(filepath.Join(wd, ".claude"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(wd, ".claude"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	projectCfgPath := filepath.Join(wd, ".claude", "sandbox.toml")
@@ -378,7 +378,7 @@ allowed_commands = ["^user-cmd"]
 workdir = "/from-project"
 [unboxexec]
 allowed_commands = ["^project-cmd"]
-`), 0644); err != nil {
+`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -411,7 +411,7 @@ func TestLoadLocalOverridesAll(t *testing.T) {
 workdir = "/from-user"
 [unboxexec]
 allowed_commands = ["^user-cmd"]
-`), 0644); err != nil {
+`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -430,7 +430,7 @@ allowed_commands = ["^user-cmd"]
 		}
 	}()
 
-	if err := os.MkdirAll(filepath.Join(wd, ".claude"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(wd, ".claude"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	projectCfgPath := filepath.Join(wd, ".claude", "sandbox.toml")
@@ -439,14 +439,14 @@ allowed_commands = ["^user-cmd"]
 workdir = "/from-project"
 [unboxexec]
 allowed_commands = ["^project-cmd"]
-`), 0644); err != nil {
+`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	localCfgPath := filepath.Join(wd, ".claude", "sandbox.local.toml")
 	if err := os.WriteFile(localCfgPath, []byte(`
 [unboxexec]
 allowed_commands = ["^local-cmd"]
-`), 0644); err != nil {
+`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

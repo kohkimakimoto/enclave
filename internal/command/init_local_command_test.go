@@ -29,11 +29,11 @@ func TestInitLocalCommand(t *testing.T) {
 		dir := testChdirTemp(t)
 
 		// Pre-create the local config file
-		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
 			t.Fatal(err)
 		}
 		existing := filepath.Join(dir, ".claude", "sandbox.local.toml")
-		if err := os.WriteFile(existing, []byte(""), 0644); err != nil {
+		if err := os.WriteFile(existing, []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
 

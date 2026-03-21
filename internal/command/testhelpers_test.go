@@ -2,19 +2,14 @@ package command
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 )
 
 // testSetupFakeHome sets HOME to a fresh temp directory and returns its path.
-// The .claude subdirectory is created so os.UserHomeDir()-based lookups work cleanly.
 // The original HOME is restored on cleanup.
 func testSetupFakeHome(t *testing.T) string {
 	t.Helper()
 	fakeHome := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0755); err != nil {
-		t.Fatalf("failed to create fake home .claude dir: %v", err)
-	}
 	orig := os.Getenv("HOME")
 	if err := os.Setenv("HOME", fakeHome); err != nil {
 		t.Fatalf("failed to set HOME: %v", err)
