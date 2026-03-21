@@ -6,6 +6,9 @@
 
 A wrapper around Claude Code (`claude` command) to run it in a sandboxed environment using macOS's `sandbox-exec`.
 
+> [!IMPORTANT]
+> This tool relies on macOS's `sandbox-exec` (Apple Seatbelt) and **only works on macOS**.
+
 Table of Contents:
 - [Why Not the Built-in Sandbox?](#why-not-the-built-in-sandbox)
 - [Installation](#installation)
