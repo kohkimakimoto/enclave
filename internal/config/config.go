@@ -118,6 +118,19 @@ func LoadFile(path string) (*Config, error) {
 	return cfg, nil
 }
 
+// DumpFile writes cfg to the file at path in TOML format.
+func DumpFile(path string, cfg *Config) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("failed to create config dump %s: %w", path, err)
+	}
+	defer f.Close()
+	if err := toml.NewEncoder(f).Encode(cfg); err != nil {
+		return fmt.Errorf("failed to write config dump %s: %w", path, err)
+	}
+	return nil
+}
+
 // CompileAllowedCommands compiles a list of regex pattern strings into []*regexp.Regexp.
 func CompileAllowedCommands(patterns []string) ([]*regexp.Regexp, error) {
 	compiled := make([]*regexp.Regexp, 0, len(patterns))

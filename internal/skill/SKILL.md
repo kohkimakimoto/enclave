@@ -33,13 +33,13 @@ Use the `config` subcommand to see the current effective configuration, includin
 enclave config
 ```
 
+Inside the sandbox, `enclave config` automatically reads the effective configuration that was resolved at startup (stored in `$ENCLAVE_CONFIG`), so it always reflects the actual settings in effect regardless of the current directory.
+
 Example output:
 
 ```toml
 # Loaded config files:
-#   user:    /Users/yourname/.config/enclave/config.toml
-#   project: ./enclave.toml
-#   local:   (none)
+#   ENCLAVE_CONFIG: /tmp/enclave-config-12345.toml
 
 sandbox_profile = ""
 unboxexec_allowed_commands = [

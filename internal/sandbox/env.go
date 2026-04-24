@@ -10,3 +10,8 @@ import (
 func SocketPath() string {
 	return filepath.Join(os.TempDir(), fmt.Sprintf("enclave-unboxexec-%d.sock", os.Getpid()))
 }
+
+// ConfigDumpPath returns the path for the effective config dump file.
+func ConfigDumpPath() string {
+	return filepath.Join(os.TempDir(), fmt.Sprintf("enclave-config-%d.toml", os.Getpid()))
+}

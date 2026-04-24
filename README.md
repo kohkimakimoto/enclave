@@ -281,6 +281,7 @@ The following environment variables are set by enclave and available to the proc
 |---|---|
 | `ENCLAVE_SANDBOX` | Set to `1` inside the sandbox |
 | `ENCLAVE_UNBOXEXEC_SOCK` | Path to the unboxexec daemon socket |
+| `ENCLAVE_CONFIG` | Path to the effective config dump file (written at startup, read by `enclave config`) |
 
 ## Agent Skill
 

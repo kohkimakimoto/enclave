@@ -80,6 +80,13 @@ func runSandboxed(ctx context.Context, args []string, cfg *config.Config) error 
 		return fmt.Errorf("failed to compile unboxexec_allowed_commands: %w", err)
 	}
 
+	// Dump the effective config to a temp file so the sandboxed process can read it
+	configDumpPath := sandbox.ConfigDumpPath()
+	if err := config.DumpFile(configDumpPath, cfg); err != nil {
+		return fmt.Errorf("failed to dump config: %w", err)
+	}
+	defer os.Remove(configDumpPath)
+
 	// Start the daemon for sandbox-external command execution
 	sockPath := sandbox.SocketPath()
 	ctx, cancel := context.WithCancel(ctx)
@@ -102,6 +109,7 @@ func runSandboxed(ctx context.Context, args []string, cfg *config.Config) error 
 	eCmd.Env = append(os.Environ(),
 		"ENCLAVE_SANDBOX=1",
 		"ENCLAVE_UNBOXEXEC_SOCK="+sockPath,
+		"ENCLAVE_CONFIG="+configDumpPath,
 	)
 	eCmd.Stdin = os.Stdin
 	eCmd.Stdout = os.Stdout
