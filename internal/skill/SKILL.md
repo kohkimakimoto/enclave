@@ -1,12 +1,12 @@
 ---
 name: enclave
-description: A sandbox environment information. You should use this skill when you need to check if the sandbox is enabled or not, or when you need to execute commands outside the sandbox.
+description: A sandbox environment. You should use this skill when you need to check if the sandbox is enabled or not, or when you need to execute commands outside the sandbox.
 ---
 
 # Enclave
 
-The current command is executed within a sandboxed environment using `enclave`.
-This uses Apple's `sandbox-exec` to restrict access to unnecessary system resources.
+The `enclave` command is a tool for managing a sandboxed environment on macOS.
+It uses Apple's `sandbox-exec` to restrict access to unnecessary system resources.
 
 ## Checking the Sandbox Status
 
