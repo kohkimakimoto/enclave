@@ -1,4 +1,4 @@
-module github.com/kohkimakimoto/claude-sandbox/v2
+module github.com/kohkimakimoto/enclave/v3
 
 go 1.24.5
 

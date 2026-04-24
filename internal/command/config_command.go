@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/config"
+	"github.com/kohkimakimoto/enclave/v3/internal/config"
 	"github.com/urfave/cli/v3"
 )
 

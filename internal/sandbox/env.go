@@ -39,5 +39,5 @@ func GetClaudeBin(configClaudeBin string) string {
 
 // SocketPath returns the path for the daemon's Unix Domain Socket.
 func SocketPath() string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("claude-sandbox-unboxexec-%d.sock", os.Getpid()))
+	return filepath.Join(os.TempDir(), fmt.Sprintf("enclave-unboxexec-%d.sock", os.Getpid()))
 }

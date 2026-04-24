@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/unboxexec"
+	"github.com/kohkimakimoto/enclave/v3/internal/unboxexec"
 	"github.com/urfave/cli/v3"
 )
 
@@ -36,9 +36,9 @@ func UnboxexecCommand() *cli.Command {
 }
 
 func unboxexecAction(ctx context.Context, cmd *cli.Command) error {
-	sockPath := os.Getenv("CLAUDE_SANDBOX_UNBOXEXEC_SOCK")
+	sockPath := os.Getenv("ENCLAVE_UNBOXEXEC_SOCK")
 	if sockPath == "" {
-		return fmt.Errorf("CLAUDE_SANDBOX_UNBOXEXEC_SOCK is not set")
+		return fmt.Errorf("ENCLAVE_UNBOXEXEC_SOCK is not set")
 	}
 
 	args := cmd.Args().Slice()

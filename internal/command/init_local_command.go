@@ -6,16 +6,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/sandbox"
+	"github.com/kohkimakimoto/enclave/v3/internal/sandbox"
 	"github.com/urfave/cli/v3"
 )
 
 // localConfigTemplate generates the template for local override sandbox.local.toml.
 func localConfigTemplate() string {
-	return `# Local override configuration for claude-sandbox.
+	return `# Local override configuration for enclave.
 # This file is intended for personal, machine-specific settings that should
 # not be committed to version control. Add it to .gitignore.
-# See https://github.com/kohkimakimoto/claude-sandbox
+# See https://github.com/kohkimakimoto/enclave
 
 [sandbox]
 # Sandbox profile for sandbox-exec.

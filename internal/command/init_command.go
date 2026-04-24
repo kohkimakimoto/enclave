@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/sandbox"
+	"github.com/kohkimakimoto/enclave/v3/internal/sandbox"
 	"github.com/urfave/cli/v3"
 )
 
 // projectConfigTemplate generates the template for project-specific sandbox.toml.
 func projectConfigTemplate() string {
-	return `# Project-specific configuration for claude-sandbox.
-# See https://github.com/kohkimakimoto/claude-sandbox
+	return `# Project-specific configuration for enclave.
+# See https://github.com/kohkimakimoto/enclave
 
 [sandbox]
 # Sandbox profile for sandbox-exec.

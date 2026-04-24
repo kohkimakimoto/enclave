@@ -3,8 +3,8 @@ package command
 import (
 	"context"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/config"
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/version"
+	"github.com/kohkimakimoto/enclave/v3/internal/config"
+	"github.com/kohkimakimoto/enclave/v3/internal/version"
 	"github.com/urfave/cli/v3"
 )
 
@@ -14,7 +14,7 @@ func Run(args []string) error {
 
 func newApp() *cli.Command {
 	return &cli.Command{
-		Name:            "claude-sandbox",
+		Name:            "enclave",
 		Usage:           "A wrapper around the claude command to run it in a sandboxed environment.",
 		Copyright:       "Copyright (c) Kohki Makimoto",
 		HideVersion:     true,

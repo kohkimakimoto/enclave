@@ -88,7 +88,7 @@ func TestGetClaudeBin(t *testing.T) {
 
 func TestSocketPath(t *testing.T) {
 	got := SocketPath()
-	expected := filepath.Join(os.TempDir(), fmt.Sprintf("claude-sandbox-unboxexec-%d.sock", os.Getpid()))
+	expected := filepath.Join(os.TempDir(), fmt.Sprintf("enclave-unboxexec-%d.sock", os.Getpid()))
 	if got != expected {
 		t.Errorf("expected %q, got %q", expected, got)
 	}

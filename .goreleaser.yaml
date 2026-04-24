@@ -1,18 +1,18 @@
 version: 2
 
-project_name: claude-sandbox
+project_name: enclave
 
 before:
   hooks:
     - go mod tidy
 
 builds:
-  - id: claude-sandbox
-    main: ./cmd/claude-sandbox
-    binary: claude-sandbox
+  - id: enclave
+    main: ./cmd/enclave
+    binary: enclave
     env:
       - CGO_ENABLED=0
-    # claude-sandbox is a macOS-only tool.
+    # enclave is a macOS-only tool.
     targets:
       - darwin_amd64
       - darwin_arm64
@@ -20,8 +20,8 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/kohkimakimoto/claude-sandbox/v2/internal/version.Version={{.Version}}
-      - -X github.com/kohkimakimoto/claude-sandbox/v2/internal/version.CommitHash={{.ShortCommit}}
+      - -X github.com/kohkimakimoto/enclave/v3/internal/version.Version={{.Version}}
+      - -X github.com/kohkimakimoto/enclave/v3/internal/version.CommitHash={{.ShortCommit}}
 
 archives:
   - formats:
@@ -40,9 +40,9 @@ changelog:
 release:
   github:
     owner: kohkimakimoto
-    name: claude-sandbox
+    name: enclave
   draft: false
-  # Automatically marks as prerelease if the tag contains a hyphen (e.g. v2.0.0-rc1).
+  # Automatically marks as prerelease if the tag contains a hyphen (e.g. v3.0.0-rc1).
   prerelease: auto
   # Overwrites the existing release if re-run for the same tag.
   mode: replace

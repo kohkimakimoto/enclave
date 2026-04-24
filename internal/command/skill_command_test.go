@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/skill"
+	"github.com/kohkimakimoto/enclave/v3/internal/skill"
 )
 
 func TestSkillCommand(t *testing.T) {
@@ -27,7 +27,7 @@ func TestSkillCommand(t *testing.T) {
 		}
 	})
 
-	t.Run("-i installs SKILL.md to .claude/skills/claude-sandbox/SKILL.md", func(t *testing.T) {
+	t.Run("-i installs SKILL.md to .claude/skills/enclave/SKILL.md", func(t *testing.T) {
 		dir := testChdirTemp(t)
 
 		buf := &bytes.Buffer{}
@@ -38,7 +38,7 @@ func TestSkillCommand(t *testing.T) {
 			t.Fatalf("skill -i failed: %v", err)
 		}
 
-		dest := filepath.Join(dir, ".claude", "skills", "claude-sandbox", "SKILL.md")
+		dest := filepath.Join(dir, ".claude", "skills", "enclave", "SKILL.md")
 		got, err := os.ReadFile(dest)
 		if err != nil {
 			t.Fatalf("failed to read installed SKILL.md: %v", err)
@@ -46,7 +46,7 @@ func TestSkillCommand(t *testing.T) {
 		if !bytes.Equal(got, skill.Content) {
 			t.Errorf("installed content mismatch:\nexpected:\n%s\ngot:\n%s", skill.Content, got)
 		}
-		assertContains(t, buf.String(), filepath.Join(".claude", "skills", "claude-sandbox", "SKILL.md"))
+		assertContains(t, buf.String(), filepath.Join(".claude", "skills", "enclave", "SKILL.md"))
 	})
 
 	t.Run("-i creates intermediate directories", func(t *testing.T) {
@@ -59,7 +59,7 @@ func TestSkillCommand(t *testing.T) {
 			t.Fatalf("skill -i failed: %v", err)
 		}
 
-		skillsDir := filepath.Join(dir, ".claude", "skills", "claude-sandbox")
+		skillsDir := filepath.Join(dir, ".claude", "skills", "enclave")
 		if _, err := os.Stat(skillsDir); err != nil {
 			t.Errorf("expected directory to exist: %s", skillsDir)
 		}
@@ -75,7 +75,7 @@ func TestSkillCommand(t *testing.T) {
 			t.Fatalf("skill --install failed: %v", err)
 		}
 
-		dest := filepath.Join(dir, ".claude", "skills", "claude-sandbox", "SKILL.md")
+		dest := filepath.Join(dir, ".claude", "skills", "enclave", "SKILL.md")
 		if _, err := os.Stat(dest); err != nil {
 			t.Errorf("expected SKILL.md to exist at %s", dest)
 		}

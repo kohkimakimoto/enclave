@@ -8,9 +8,9 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/config"
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/sandbox"
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/unboxexec"
+	"github.com/kohkimakimoto/enclave/v3/internal/config"
+	"github.com/kohkimakimoto/enclave/v3/internal/sandbox"
+	"github.com/kohkimakimoto/enclave/v3/internal/unboxexec"
 	"github.com/urfave/cli/v3"
 )
 
@@ -75,10 +75,10 @@ func RunClaudeAction(ctx context.Context, cmd *cli.Command, args []string, cfg *
 	// Run sandbox-exec as a child process
 	eCmd := exec.CommandContext(ctx, "sandbox-exec", sandboxExecArgs...)
 	eCmd.Env = append(os.Environ(),
-		"CLAUDE_SANDBOX=1",
-		"CLAUDE_SANDBOX_UNBOXEXEC_SOCK="+sockPath,
-		"CLAUDE_SANDBOX_WORKDIR="+workdir,
-		"CLAUDE_SANDBOX_CLAUDE_BIN="+claudeBin,
+		"ENCLAVE=1",
+		"ENCLAVE_UNBOXEXEC_SOCK="+sockPath,
+		"ENCLAVE_WORKDIR="+workdir,
+		"ENCLAVE_CLAUDE_BIN="+claudeBin,
 	)
 	eCmd.Stdin = os.Stdin
 	eCmd.Stdout = os.Stdout

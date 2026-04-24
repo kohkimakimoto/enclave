@@ -75,7 +75,7 @@ func BuildProfile(profileContent string) (profilePath string, cleanup func(), er
 	}
 
 	// Write to temporary file
-	tmpFile, err := os.CreateTemp("", "claude-sandbox-profile-*.sb")
+	tmpFile, err := os.CreateTemp("", "enclave-profile-*.sb")
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to create temp file: %w", err)
 	}

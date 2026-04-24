@@ -9,7 +9,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// Config represents the claude-sandbox configuration.
+// Config represents the enclave configuration.
 type Config struct {
 	Sandbox   SandboxConfig   `toml:"sandbox"`
 	Unboxexec UnboxexecConfig `toml:"unboxexec"`
