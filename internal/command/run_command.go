@@ -35,6 +35,9 @@ func runAction(ctx context.Context, cmd *cli.Command) error {
 	var err error
 
 	if configPath := cmd.String("config"); configPath != "" {
+		if _, err = os.Stat(configPath); os.IsNotExist(err) {
+			return fmt.Errorf("config file not found: %s", configPath)
+		}
 		cfg, err = config.LoadFile(configPath)
 		if err != nil {
 			return err

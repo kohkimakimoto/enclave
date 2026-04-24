@@ -97,6 +97,19 @@ unboxexec_allowed_commands = ["^explicit-tool"]
 	}
 }
 
+func TestRunCommand_ConfigFlagMissingFile(t *testing.T) {
+	testChdirTemp(t)
+	testSetupFakeXDGConfig(t)
+
+	cmd := RunCommand()
+	cmd.Writer = &bytes.Buffer{}
+
+	err := cmd.Run(context.Background(), []string{"run", "--config", "/nonexistent/path/config.toml", "echo", "hello"})
+	if err == nil {
+		t.Fatal("expected error when config file not found, got nil")
+	}
+}
+
 // loadConfigFromFile is a test helper to load a config file directly.
 func loadConfigFromFile(t *testing.T, path string) *config.Config {
 	t.Helper()
