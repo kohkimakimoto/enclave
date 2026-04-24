@@ -202,7 +202,6 @@ Example output:
 #   local:   (none)
 
 sandbox_profile = ""
-
 unboxexec_allowed_commands = [
   "^playwright-cli",
 ]

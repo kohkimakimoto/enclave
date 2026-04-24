@@ -49,7 +49,6 @@ func printConfig(w io.Writer, paths config.ConfigPaths, cfg *config.Config) {
 	} else {
 		fmt.Fprintf(w, "sandbox_profile = %s\n", tomlMultilineString(cfg.SandboxProfile))
 	}
-	fmt.Fprintf(w, "\n")
 
 	if len(cfg.UnboxexecAllowedCommands) == 0 {
 		fmt.Fprintf(w, "unboxexec_allowed_commands = []\n")
