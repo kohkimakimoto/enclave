@@ -14,44 +14,67 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func ClaudeCommand() *cli.Command {
+func RunCommand() *cli.Command {
 	return &cli.Command{
-		Name:            "claude",
-		Usage:           "Run the claude command in a sandboxed environment",
-		SkipFlagParsing: true,
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// When invoked as a subcommand, load merged config
-			cfg, err := config.Load()
-			if err != nil {
-				return err
-			}
-			return RunClaudeAction(ctx, cmd, cmd.Args().Slice(), cfg)
+		Name:      "run",
+		Usage:     "Run a command in a sandboxed environment",
+		UsageText: "enclave run [options] [--] <command> [args...]",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "Path to a config file (overrides automatic config resolution)",
+			},
 		},
+		Action: runAction,
 	}
 }
 
-// RunClaudeAction executes claude inside a macOS sandbox using sandbox-exec.
+func runAction(ctx context.Context, cmd *cli.Command) error {
+	var cfg *config.Config
+	var err error
+
+	if configPath := cmd.String("config"); configPath != "" {
+		cfg, err = config.LoadFile(configPath)
+		if err != nil {
+			return err
+		}
+	} else {
+		cfg, err = config.Load()
+		if err != nil {
+			return err
+		}
+	}
+
+	args := cmd.Args().Slice()
+	if len(args) == 0 {
+		return fmt.Errorf("no command specified\n\nUsage: enclave run [options] [--] <command> [args...]")
+	}
+
+	return runSandboxed(ctx, args, cfg)
+}
+
+// runSandboxed executes the given command inside a macOS sandbox using sandbox-exec.
 // It starts an internal daemon for sandbox-external command execution,
 // then runs sandbox-exec as a child process.
-func RunClaudeAction(ctx context.Context, cmd *cli.Command, args []string, cfg *config.Config) error {
+func runSandboxed(ctx context.Context, args []string, cfg *config.Config) error {
 	if runtime.GOOS != "darwin" {
 		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
 	}
 
-	profilePath, cleanup, err := sandbox.BuildProfile(cfg.Sandbox.Profile)
+	profilePath, cleanup, err := sandbox.BuildProfile(cfg.SandboxProfile)
 	if err != nil {
 		return err
 	}
 	defer cleanup()
 
-	workdir := sandbox.GetWorkdir(cfg.Sandbox.Workdir)
+	wd, _ := os.Getwd()
 	home, _ := os.UserHomeDir()
-	claudeBin := sandbox.GetClaudeBin(cfg.Sandbox.ClaudeBin)
 
 	// Compile allowed command patterns
-	allowedCommands, err := config.CompileAllowedCommands(cfg.Unboxexec.AllowedCommands)
+	allowedCommands, err := config.CompileAllowedCommands(cfg.UnboxexecAllowedCommands)
 	if err != nil {
-		return fmt.Errorf("failed to compile allowed_commands: %w", err)
+		return fmt.Errorf("failed to compile unboxexec_allowed_commands: %w", err)
 	}
 
 	// Start the daemon for sandbox-external command execution
@@ -65,20 +88,17 @@ func RunClaudeAction(ctx context.Context, cmd *cli.Command, args []string, cfg *
 
 	// Build sandbox-exec command arguments
 	sandboxExecArgs := []string{
-		"-D", "WORKDIR=" + workdir,
+		"-D", "WORKDIR=" + wd,
 		"-D", "HOME=" + home,
 		"-f", profilePath,
-		claudeBin,
 	}
 	sandboxExecArgs = append(sandboxExecArgs, args...)
 
 	// Run sandbox-exec as a child process
 	eCmd := exec.CommandContext(ctx, "sandbox-exec", sandboxExecArgs...)
 	eCmd.Env = append(os.Environ(),
-		"ENCLAVE=1",
+		"ENCLAVE_SANDBOX=1",
 		"ENCLAVE_UNBOXEXEC_SOCK="+sockPath,
-		"ENCLAVE_WORKDIR="+workdir,
-		"ENCLAVE_CLAUDE_BIN="+claudeBin,
 	)
 	eCmd.Stdin = os.Stdin
 	eCmd.Stdout = os.Stdout

@@ -11,73 +11,61 @@ import (
 
 // Config represents the enclave configuration.
 type Config struct {
-	Sandbox   SandboxConfig   `toml:"sandbox"`
-	Unboxexec UnboxexecConfig `toml:"unboxexec"`
-}
-
-// SandboxConfig holds settings for the sandbox environment.
-type SandboxConfig struct {
-	// Profile is the sandbox-exec profile content.
+	// SandboxProfile is the sandbox-exec profile content.
 	// If empty, the built-in default profile is used.
-	Profile string `toml:"profile"`
-	// Workdir overrides the working directory for sandbox execution.
-	// If empty, the current directory is used.
-	Workdir string `toml:"workdir"`
-	// ClaudeBin overrides the path to the claude binary.
-	// If empty, PATH search is used.
-	ClaudeBin string `toml:"claude_bin"`
-}
-
-// UnboxexecConfig holds settings for the unboxexec daemon.
-type UnboxexecConfig struct {
-	AllowedCommands []string `toml:"allowed_commands"`
+	SandboxProfile string `toml:"sandbox_profile"`
+	// UnboxexecAllowedCommands is a list of regex patterns for allowed commands.
+	UnboxexecAllowedCommands []string `toml:"unboxexec_allowed_commands"`
 }
 
 // mergeInto merges non-zero fields of src into dst.
 func mergeInto(dst, src *Config) {
-	if src.Sandbox.Profile != "" {
-		dst.Sandbox.Profile = src.Sandbox.Profile
+	if src.SandboxProfile != "" {
+		dst.SandboxProfile = src.SandboxProfile
 	}
-	if src.Sandbox.Workdir != "" {
-		dst.Sandbox.Workdir = src.Sandbox.Workdir
-	}
-	if src.Sandbox.ClaudeBin != "" {
-		dst.Sandbox.ClaudeBin = src.Sandbox.ClaudeBin
-	}
-	if len(src.Unboxexec.AllowedCommands) > 0 {
-		dst.Unboxexec.AllowedCommands = src.Unboxexec.AllowedCommands
+	if len(src.UnboxexecAllowedCommands) > 0 {
+		dst.UnboxexecAllowedCommands = src.UnboxexecAllowedCommands
 	}
 }
 
 // ConfigPaths holds the resolved paths for each config scope.
 type ConfigPaths struct {
-	// User is the user-level config path (~/.claude/sandbox.toml).
+	// User is the user-level config path (~/.config/enclave/config.toml).
 	User string
-	// Project is the project-level config path (.claude/sandbox.toml in workdir).
+	// Project is the project-level config path (./enclave.toml in workdir).
 	Project string
-	// Local is the local override config path (.claude/sandbox.local.toml in workdir).
+	// Local is the local override config path (./enclave.local.toml in workdir).
 	Local string
+}
+
+// UserConfigDir returns the XDG-compliant user config directory for enclave.
+// Uses $XDG_CONFIG_HOME if set, otherwise falls back to ~/.config.
+func UserConfigDir() string {
+	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
+		return filepath.Join(xdg, "enclave")
+	}
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".config", "enclave")
 }
 
 // ResolveConfigPaths returns the paths for all three config scopes.
 // Each field is set to the path only if the file exists; otherwise it is empty.
 func ResolveConfigPaths() ConfigPaths {
 	wd, _ := os.Getwd()
-	home, _ := os.UserHomeDir()
 
 	paths := ConfigPaths{}
 
-	userConfig := filepath.Join(home, ".claude", "sandbox.toml")
+	userConfig := filepath.Join(UserConfigDir(), "config.toml")
 	if _, err := os.Stat(userConfig); err == nil {
 		paths.User = userConfig
 	}
 
-	projectConfig := filepath.Join(wd, ".claude", "sandbox.toml")
+	projectConfig := filepath.Join(wd, "enclave.toml")
 	if _, err := os.Stat(projectConfig); err == nil {
 		paths.Project = projectConfig
 	}
 
-	localConfig := filepath.Join(wd, ".claude", "sandbox.local.toml")
+	localConfig := filepath.Join(wd, "enclave.local.toml")
 	if _, err := os.Stat(localConfig); err == nil {
 		paths.Local = localConfig
 	}
@@ -86,9 +74,9 @@ func ResolveConfigPaths() ConfigPaths {
 }
 
 // Load loads and merges configs from all scopes in order:
-//  1. user   (~/.claude/sandbox.toml)
-//  2. project (.claude/sandbox.toml in workdir)
-//  3. local   (.claude/sandbox.local.toml in workdir)
+//  1. user   (~/.config/enclave/config.toml)
+//  2. project (./enclave.toml in workdir)
+//  3. local   (./enclave.local.toml in workdir)
 //
 // Each scope overrides the previous one for any field that is explicitly set.
 func Load() (*Config, error) {
@@ -136,7 +124,7 @@ func CompileAllowedCommands(patterns []string) ([]*regexp.Regexp, error) {
 	for _, p := range patterns {
 		re, err := regexp.Compile(p)
 		if err != nil {
-			return nil, fmt.Errorf("invalid allowed_commands pattern %q: %w", p, err)
+			return nil, fmt.Errorf("invalid unboxexec_allowed_commands pattern %q: %w", p, err)
 		}
 		compiled = append(compiled, re)
 	}

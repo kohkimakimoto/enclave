@@ -23,34 +23,4 @@ func TestVersionCommand(t *testing.T) {
 			t.Errorf("expected %q, got %q", expected, got)
 		}
 	})
-
-	t.Run("via -v flag", func(t *testing.T) {
-		buf := &bytes.Buffer{}
-		app := newApp()
-		app.Writer = buf
-
-		if err := app.Run(context.Background(), []string{"enclave", "-v"}); err != nil {
-			t.Fatalf("-v flag failed: %v", err)
-		}
-
-		expected := "enclave version " + version.Version + " (commit: " + version.CommitHash + ")\n"
-		if got := buf.String(); got != expected {
-			t.Errorf("expected %q, got %q", expected, got)
-		}
-	})
-
-	t.Run("via --version flag", func(t *testing.T) {
-		buf := &bytes.Buffer{}
-		app := newApp()
-		app.Writer = buf
-
-		if err := app.Run(context.Background(), []string{"enclave", "--version"}); err != nil {
-			t.Fatalf("--version flag failed: %v", err)
-		}
-
-		expected := "enclave version " + version.Version + " (commit: " + version.CommitHash + ")\n"
-		if got := buf.String(); got != expected {
-			t.Errorf("expected %q, got %q", expected, got)
-		}
-	})
 }

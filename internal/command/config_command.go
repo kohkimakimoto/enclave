@@ -44,23 +44,19 @@ func printConfig(w io.Writer, paths config.ConfigPaths, cfg *config.Config) {
 	fmt.Fprintf(w, "#   local:   %s\n", noneIfEmpty(paths.Local))
 	fmt.Fprintf(w, "\n")
 
-	fmt.Fprintf(w, "[sandbox]\n")
-	fmt.Fprintf(w, "workdir    = %s\n", tomlString(cfg.Sandbox.Workdir))
-	fmt.Fprintf(w, "claude_bin = %s\n", tomlString(cfg.Sandbox.ClaudeBin))
-	if cfg.Sandbox.Profile == "" {
-		fmt.Fprintf(w, "profile    = \"\"\n")
+	if cfg.SandboxProfile == "" {
+		fmt.Fprintf(w, "sandbox_profile = \"\"\n")
 	} else {
-		fmt.Fprintf(w, "profile    = %s\n", tomlMultilineString(cfg.Sandbox.Profile))
+		fmt.Fprintf(w, "sandbox_profile = %s\n", tomlMultilineString(cfg.SandboxProfile))
 	}
 	fmt.Fprintf(w, "\n")
 
-	fmt.Fprintf(w, "[unboxexec]\n")
-	if len(cfg.Unboxexec.AllowedCommands) == 0 {
-		fmt.Fprintf(w, "allowed_commands = []\n")
+	if len(cfg.UnboxexecAllowedCommands) == 0 {
+		fmt.Fprintf(w, "unboxexec_allowed_commands = []\n")
 	} else {
-		fmt.Fprintf(w, "allowed_commands = [\n")
-		for _, cmd := range cfg.Unboxexec.AllowedCommands {
-			fmt.Fprintf(w, "  %s,\n", tomlString(cmd))
+		fmt.Fprintf(w, "unboxexec_allowed_commands = [\n")
+		for _, c := range cfg.UnboxexecAllowedCommands {
+			fmt.Fprintf(w, "  %s,\n", tomlString(c))
 		}
 		fmt.Fprintf(w, "]\n")
 	}

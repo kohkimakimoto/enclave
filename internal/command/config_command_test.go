@@ -11,7 +11,7 @@ import (
 
 func TestConfigCommand(t *testing.T) {
 	t.Run("no config files", func(t *testing.T) {
-		testSetupFakeHome(t)
+		testSetupFakeXDGConfig(t)
 		testChdirTemp(t)
 
 		buf := &bytes.Buffer{}
@@ -27,21 +27,19 @@ func TestConfigCommand(t *testing.T) {
 		assertContains(t, got, "#   user:    (none)")
 		assertContains(t, got, "#   project: (none)")
 		assertContains(t, got, "#   local:   (none)")
-		assertContains(t, got, `workdir    = ""`)
-		assertContains(t, got, `claude_bin = ""`)
-		assertContains(t, got, `profile    = ""`)
-		assertContains(t, got, "allowed_commands = []")
+		assertContains(t, got, `sandbox_profile = ""`)
+		assertContains(t, got, "unboxexec_allowed_commands = []")
 	})
 
-	t.Run("user config with allowed_commands", func(t *testing.T) {
-		fakeHome := testSetupFakeHome(t)
+	t.Run("user config with unboxexec_allowed_commands", func(t *testing.T) {
+		configDir := testSetupFakeXDGConfig(t)
 		testChdirTemp(t)
 
-		toml := "[unboxexec]\nallowed_commands = [\"^playwright-cli\", \"^my-tool\"]\n"
-		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+		if err := os.MkdirAll(configDir, 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0o644); err != nil {
+		toml := "unboxexec_allowed_commands = [\"^playwright-cli\", \"^my-tool\"]\n"
+		if err := os.WriteFile(filepath.Join(configDir, "config.toml"), []byte(toml), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -54,21 +52,21 @@ func TestConfigCommand(t *testing.T) {
 		}
 
 		got := buf.String()
-		assertContains(t, got, fakeHome)
+		assertContains(t, got, configDir)
 		assertContains(t, got, `"^playwright-cli",`)
 		assertContains(t, got, `"^my-tool",`)
 	})
 
-	t.Run("profile without triple-single-quote", func(t *testing.T) {
-		fakeHome := testSetupFakeHome(t)
+	t.Run("sandbox_profile without triple-single-quote", func(t *testing.T) {
+		configDir := testSetupFakeXDGConfig(t)
 		testChdirTemp(t)
 
 		profile := "(version 1)\n(allow default)\n(deny file-write*)\n"
-		toml := "[sandbox]\nprofile = '''\n" + profile + "'''\n"
-		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+		toml := "sandbox_profile = '''\n" + profile + "'''\n"
+		if err := os.MkdirAll(configDir, 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(configDir, "config.toml"), []byte(toml), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -81,24 +79,22 @@ func TestConfigCommand(t *testing.T) {
 		}
 
 		got := buf.String()
-		// Should use literal multiline string
-		assertContains(t, got, "profile    = '''\n")
+		assertContains(t, got, "sandbox_profile = '''\n")
 		assertContains(t, got, "(version 1)")
 		assertContains(t, got, "(allow default)")
 		assertContains(t, got, "'''")
 	})
 
-	t.Run("profile containing triple-single-quote falls back to basic multiline", func(t *testing.T) {
-		fakeHome := testSetupFakeHome(t)
+	t.Run("sandbox_profile containing triple-single-quote falls back to basic multiline", func(t *testing.T) {
+		configDir := testSetupFakeXDGConfig(t)
 		testChdirTemp(t)
 
-		// Write the profile value directly via basic string in TOML to embed '''
 		profileContent := "line1\n'''\nline3\n"
-		toml := "[sandbox]\nprofile = \"line1\\n'''\\nline3\\n\"\n"
-		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+		toml := "sandbox_profile = \"line1\\n'''\\nline3\\n\"\n"
+		if err := os.MkdirAll(configDir, 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(toml), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(configDir, "config.toml"), []byte(toml), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -111,29 +107,25 @@ func TestConfigCommand(t *testing.T) {
 		}
 
 		got := buf.String()
-		// Should fall back to basic multiline string (""")
-		assertContains(t, got, "profile    = \"\"\"\n")
+		assertContains(t, got, "sandbox_profile = \"\"\"\n")
 		assertContains(t, got, profileContent)
 		assertContains(t, got, "\"\"\"")
 	})
 
 	t.Run("config files from all three scopes are reported", func(t *testing.T) {
-		fakeHome := testSetupFakeHome(t)
+		configDir := testSetupFakeXDGConfig(t)
 		dir := testChdirTemp(t)
 
-		if err := os.MkdirAll(filepath.Join(fakeHome, ".claude"), 0o755); err != nil {
+		if err := os.MkdirAll(configDir, 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(fakeHome, ".claude", "sandbox.toml"), []byte(""), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(configDir, "config.toml"), []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, "enclave.toml"), []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.toml"), []byte(""), 0o644); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(dir, ".claude", "sandbox.local.toml"), []byte(""), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, "enclave.local.toml"), []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -146,7 +138,7 @@ func TestConfigCommand(t *testing.T) {
 		}
 
 		got := buf.String()
-		assertContains(t, got, fakeHome)
+		assertContains(t, got, configDir)
 		assertContains(t, got, dir)
 		assertNotContains(t, got, "(none)")
 	})
@@ -184,7 +176,6 @@ func TestTomlMultilineString(t *testing.T) {
 		if !strings.HasPrefix(got, `"""`) {
 			t.Errorf("expected basic multiline fallback, got: %s", got)
 		}
-		// """ should be escaped as ""\"; verify the escaped form is present
 		assertContains(t, got, `""\"`)
 	})
 }

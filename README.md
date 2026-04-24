@@ -1,10 +1,13 @@
-# claude-sandbox
+# enclave
 
-[![test](https://github.com/kohkimakimoto/claude-sandbox/actions/workflows/test.yml/badge.svg)](https://github.com/kohkimakimoto/claude-sandbox/actions/workflows/test.yml)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kohkimakimoto/claude-sandbox)](https://github.com/kohkimakimoto/claude-sandbox/releases)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kohkimakimoto/claude-sandbox/blob/main/LICENSE)
+[![test](https://github.com/kohkimakimoto/enclave/actions/workflows/test.yml/badge.svg)](https://github.com/kohkimakimoto/enclave/actions/workflows/test.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kohkimakimoto/enclave)](https://github.com/kohkimakimoto/enclave/releases)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kohkimakimoto/enclave/blob/main/LICENSE)
 
-A wrapper around Claude Code (`claude` command) to run it in a sandboxed environment using macOS's `sandbox-exec`.
+A tool to run any command in a sandboxed environment using macOS's `sandbox-exec`.
+
+> [!NOTE]
+> This project was previously called **claude-sandbox** and was designed specifically to run Claude Code in a sandboxed environment. Starting from v3, it has been redesigned and renamed to **enclave** to support running any command — not just Claude Code, but any AI agent or arbitrary command — inside a sandbox.
 
 Table of Contents:
 - [Why Not the Built-in Sandbox?](#why-not-the-built-in-sandbox)
@@ -15,8 +18,7 @@ Table of Contents:
 - [Configuration File](#configuration-file)
   - [Creating a Configuration File](#creating-a-configuration-file)
   - [Example](#example)
-  - [`[sandbox]` Section](#sandbox-section)
-  - [`[unboxexec]` Section](#unboxexec-section)
+  - [Configuration Keys](#configuration-keys)
   - [Sandbox Profile Parameters](#sandbox-profile-parameters)
   - [Viewing the Sandbox Profile](#viewing-the-sandbox-profile)
   - [Viewing the Effective Configuration](#viewing-the-effective-configuration)
@@ -45,50 +47,54 @@ What I actually needed was simpler: **restrict file writes to the current direct
 ### Homebrew
 
 ```bash
-brew install kohkimakimoto/tap/claude-sandbox
+brew install kohkimakimoto/tap/enclave
 ```
 
 ### Build from source
 
 ```bash
-git clone https://github.com/kohkimakimoto/claude-sandbox.git
-cd claude-sandbox
+git clone https://github.com/kohkimakimoto/enclave.git
+cd enclave
 make build
-# Binary is at .dev/build/dev/claude-sandbox
+# Binary is at .dev/build/dev/enclave
 ```
 
 ## Usage
 
-`claude-sandbox` can be used as a drop-in replacement for the `claude` command, but runs in a sandboxed environment that restricts file system write access.
+Use `enclave run` to run any command inside the sandbox:
 
 ```bash
-# Instead of: claude
-claude-sandbox
+# Run Claude Code in the sandbox
+enclave run claude --dangerously-skip-permissions
 
-# Instead of: claude --dangerously-skip-permissions
-claude-sandbox --dangerously-skip-permissions
+# Run GitHub Copilot CLI in the sandbox
+enclave run copilot
+
+# Run any arbitrary command
+enclave run ls -la
 ```
 
-You can also use the explicit `claude` subcommand. These commands are equivalent to the above:
+Use `--config` to specify a custom configuration file:
 
 ```bash
-claude-sandbox claude
-claude-sandbox claude --dangerously-skip-permissions
+enclave run --config copilot-sandbox.toml copilot
 ```
 
-Commands or options that conflict with claude-sandbox's own can be passed using the `claude` subcommand prefix. For example, the following shows the claude help, not the claude-sandbox help:
+Use `--` to clearly separate enclave's own options from the command's arguments:
 
 ```bash
-claude-sandbox claude -h
+enclave run --config my.toml -- claude -p "hello"
 ```
 
 ## Configuration File
 
 Settings are managed through TOML configuration files with three scopes. Each scope overrides the previous one for any field that is explicitly set:
 
-1. **User**: `~/.claude/sandbox.toml` — applies to all projects for the current user
-2. **Project**: `.claude/sandbox.toml` in the working directory — project-specific settings checked into version control
-3. **Local**: `.claude/sandbox.local.toml` in the working directory — local overrides not meant to be committed (e.g. personal command allowlists)
+1. **User**: `$XDG_CONFIG_HOME/enclave/config.toml` (or `~/.config/enclave/config.toml`) — applies to all projects for the current user
+2. **Project**: `./enclave.toml` in the working directory — project-specific settings checked into version control
+3. **Local**: `./enclave.local.toml` in the working directory — local overrides not meant to be committed (e.g. personal command allowlists)
+
+You can also specify a config file directly with `--config`, which takes precedence over all of the above.
 
 If no config files exist, built-in defaults are used.
 
@@ -97,85 +103,67 @@ If no config files exist, built-in defaults are used.
 Create a project-specific configuration:
 
 ```bash
-claude-sandbox init
+enclave init
 ```
 
-This creates `.claude/sandbox.toml` in your current directory.
+This creates `enclave.toml` in your current directory.
 
 Create a local override configuration (not for version control):
 
 ```bash
-claude-sandbox init-local
+enclave init-local
 ```
 
-This creates `.claude/sandbox.local.toml` in your current directory. Use this for personal or machine-specific settings that should not be committed. Add it to `.gitignore`.
+This creates `enclave.local.toml` in your current directory. Use this for personal or machine-specific settings that should not be committed. Add it to `.gitignore`.
 
 Create a user-level configuration:
 
 ```bash
-claude-sandbox init-user
+enclave init-user
 ```
 
-This creates `~/.claude/sandbox.toml`.
+This creates `~/.config/enclave/config.toml`.
 
 ### Example
 
 ```toml
-# ~/.claude/sandbox.toml          (user)
-# .claude/sandbox.toml            (project)
-# .claude/sandbox.local.toml      (local overrides)
+# ~/.config/enclave/config.toml   (user)
+# ./enclave.toml                  (project)
+# ./enclave.local.toml            (local overrides)
 
-[sandbox]
 # Sandbox profile for sandbox-exec.
 # If not set, the built-in default profile is used.
-profile = '''
+sandbox_profile = '''
 (version 1)
 (allow default)
 (deny file-write*)
 (allow file-write*
     (subpath (param "WORKDIR"))
-    (regex (string-append "^" (param "HOME") "/\\.claude"))
     (subpath "/tmp")
 )
 '''
 
-# Override working directory (optional).
-# workdir = "/path/to/workdir"
-
-# Override claude binary path (optional).
-# claude_bin = "/path/to/claude"
-
-[unboxexec]
-# Regex patterns for allowed commands.
+# Regex patterns for allowed commands in unboxexec.
 # The command and its arguments are joined by spaces, and the resulting string
 # is matched against each pattern. If any pattern matches, the command is allowed.
 # If empty or not configured, all commands are rejected.
-allowed_commands = [
+unboxexec_allowed_commands = [
     "^playwright-cli",
 ]
 ```
 
-### `[sandbox]` Section
+### Configuration Keys
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `profile` | String | The sandbox-exec profile content. If not set, a built-in default profile is used. Use TOML multiline literal strings (`'''`) for readability. |
-| `workdir` | String | Override the working directory for sandbox execution. If not set, the current directory is used. |
-| `claude_bin` | String | Override the path to the `claude` binary. If not set, it is resolved from PATH. |
-
-### `[unboxexec]` Section
-
-| Key | Type | Description |
-|-----|------|-------------|
-| `allowed_commands` | Array of strings | Regex patterns that define which commands are allowed to execute via `unboxexec`. The command and arguments are joined with spaces and matched against each pattern. If any pattern matches, the command is permitted. |
-
-For more details, see the [Sandbox-External Command Execution](#sandbox-external-command-execution) section below.
+| `sandbox_profile` | String | The sandbox-exec profile content. If not set, a built-in default profile is used. Use TOML multiline literal strings (`'''`) for readability. |
+| `unboxexec_allowed_commands` | Array of strings | Regex patterns that define which commands are allowed to execute via `unboxexec`. The command and arguments are joined with spaces and matched against each pattern. If any pattern matches, the command is permitted. |
 
 ### Sandbox Profile Parameters
 
-The sandbox profile uses parameters that are passed from claude-sandbox automatically:
+The sandbox profile uses parameters that are passed from enclave automatically:
 
-- `WORKDIR`: The current working directory where claude-sandbox is executed
+- `WORKDIR`: The current working directory where enclave is executed
 - `HOME`: The user's home directory
 
 You can use these parameters in your sandbox profile like this:
@@ -192,34 +180,30 @@ You can use these parameters in your sandbox profile like this:
 You can view the actual profile being used:
 
 ```bash
-claude-sandbox profile
+enclave profile
 ```
 
-The sandbox uses macOS's `sandbox-exec` (Apple Seatbelt) technology. Even if Claude Code tried to execute a command like `rm -rf /usr/bin` or modify system configuration files, the sandbox would block these operations.
+The sandbox uses macOS's `sandbox-exec` (Apple Seatbelt) technology. Even if a sandboxed command tried to execute something like `rm -rf /usr/bin` or modify system configuration files, the sandbox would block these operations.
 
 ### Viewing the Effective Configuration
 
 You can view the effective configuration (merged from all config files) and see which config files are loaded:
 
 ```bash
-claude-sandbox config
+enclave config
 ```
 
 Example output:
 
 ```toml
 # Loaded config files:
-#   user:    /Users/yourname/.claude/sandbox.toml
-#   project: .claude/sandbox.toml
+#   user:    /Users/yourname/.config/enclave/config.toml
+#   project: ./enclave.toml
 #   local:   (none)
 
-[sandbox]
-workdir    = ""
-claude_bin = ""
-profile    = ""
+sandbox_profile = ""
 
-[unboxexec]
-allowed_commands = [
+unboxexec_allowed_commands = [
   "^playwright-cli",
 ]
 ```
@@ -228,14 +212,14 @@ allowed_commands = [
 
 Some tools (e.g. Playwright) cannot run inside the macOS sandbox because they use their own sandboxing mechanisms, which conflict with the nested sandbox environment.
 
-`claude-sandbox` includes a built-in mechanism called **unboxexec** that allows commands to be executed outside the sandbox. When `claude-sandbox` starts, it launches an internal daemon that accepts command execution requests from inside the sandbox.
+`enclave` includes a built-in mechanism called **unboxexec** that allows commands to be executed outside the sandbox. When `enclave run` starts, it launches an internal daemon that accepts command execution requests from inside the sandbox.
 
 ### The `unboxexec` Subcommand
 
-The `claude-sandbox unboxexec` subcommand is used from inside the sandbox to execute commands outside of it.
+The `enclave unboxexec` subcommand is used from inside the sandbox to execute commands outside of it.
 
 ```bash
-claude-sandbox unboxexec [options] -- <command> [args...]
+enclave unboxexec [options] -- <command> [args...]
 ```
 
 #### Options
@@ -250,21 +234,21 @@ claude-sandbox unboxexec [options] -- <command> [args...]
 
 ```bash
 # Execute a command outside the sandbox
-claude-sandbox unboxexec -- echo "hello from outside"
+enclave unboxexec -- echo "hello from outside"
 
 # Execute with a specified working directory
-claude-sandbox unboxexec --dir /tmp -- ls -la
+enclave unboxexec --dir /tmp -- ls -la
 
 # Execute with an extended timeout
-claude-sandbox unboxexec --timeout 300 -- long-running-command
+enclave unboxexec --timeout 300 -- long-running-command
 
 # Execute with environment variables
-claude-sandbox unboxexec --env API_KEY=secret --env DEBUG=1 -- my-command
+enclave unboxexec --env API_KEY=secret --env DEBUG=1 -- my-command
 ```
 
 ### Command Restrictions
 
-By default, all commands executed via `unboxexec` are **rejected** unless explicitly allowed by the `[unboxexec]` section in the configuration file. See the [`[unboxexec]` Section](#unboxexec-section) for details.
+By default, all commands executed via `unboxexec` are **rejected** unless explicitly allowed by `unboxexec_allowed_commands` in the configuration file. See the [Configuration Keys](#configuration-keys) section for details.
 
 ### Architecture
 
@@ -272,7 +256,7 @@ The following diagram shows how sandbox-external command execution is implemente
 
 ```mermaid
 graph TD
-    A["claude-sandbox"]
+    A["enclave run"]
 
     subgraph daemon["unboxexec daemon"]
         B["Listen on Unix socket"]
@@ -281,8 +265,8 @@ graph TD
     end
 
     subgraph sandboxed["sandbox-exec"]
-        E["claude"]
-        F["invoke claude-sandbox unboxexec"]
+        E["command (e.g. claude)"]
+        F["invoke enclave unboxexec"]
         E --> F
     end
 
@@ -291,33 +275,31 @@ graph TD
     F -- "JSON request/response over Unix socket" --> B
 ```
 
-The `claude-sandbox` process starts the unboxexec daemon as a goroutine, then spawns `sandbox-exec` as a child process. Claude Code running inside the sandbox communicates with the daemon via a Unix Domain Socket to execute commands outside the sandbox.
+The `enclave run` process starts the unboxexec daemon as a goroutine, then spawns `sandbox-exec` as a child process. The command running inside the sandbox communicates with the daemon via a Unix Domain Socket to execute commands outside the sandbox.
 
 ## Environment Variables
 
-The following environment variables are set by claude-sandbox and available to the Claude Code process running inside the sandbox.
+The following environment variables are set by enclave and available to the process running inside the sandbox.
 
 | Variable | Description |
 |---|---|
-| `CLAUDE_SANDBOX` | Set to `1` inside the sandbox |
-| `CLAUDE_SANDBOX_UNBOXEXEC_SOCK` | Path to the unboxexec daemon socket |
-| `CLAUDE_SANDBOX_WORKDIR` | Working directory used for sandbox execution |
-| `CLAUDE_SANDBOX_CLAUDE_BIN` | Path to the claude binary used |
+| `ENCLAVE_SANDBOX` | Set to `1` inside the sandbox |
+| `ENCLAVE_UNBOXEXEC_SOCK` | Path to the unboxexec daemon socket |
 
 ## Agent Skill
 
-`claude-sandbox` provides an Agent Skill that helps Claude Code understand the sandbox environment — how to check sandbox status, inspect the configuration, and run commands outside the sandbox via `unboxexec`.
+`enclave` provides an Agent Skill that helps AI agents understand the sandbox environment — how to check sandbox status, inspect the configuration, and run commands outside the sandbox via `unboxexec`.
 
 The following command outputs the contents of SKILL.md to standard output:
 
 ```bash
-claude-sandbox skill
+enclave skill
 ```
 
-You can also install the skill in the current project at `.claude/skills/claude-sandbox/SKILL.md` using the following command:
+You can also install the skill in the current project at `.claude/skills/enclave/SKILL.md` using the following command:
 
 ```bash
-claude-sandbox skill --install
+enclave skill --install
 ```
 
 Once installed, Claude Code will automatically load the skill and understand how to work within the sandbox environment.

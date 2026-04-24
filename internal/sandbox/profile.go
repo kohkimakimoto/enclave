@@ -42,11 +42,11 @@ const DefaultProfile = `(version 1)
     (regex #"^/dev/tty*")
 )
 
-;; Prevent Claude Code from modifying sandbox config files.
+;; Prevent enclave from modifying sandbox config files.
 (deny file-write*
-    (literal (string-append (param "HOME") "/.claude/sandbox.toml"))
-    (regex (string-append "^" (param "WORKDIR") "/\\.claude/sandbox\\.toml$"))
-    (regex (string-append "^" (param "WORKDIR") "/\\.claude/sandbox\\.local\\.toml$"))
+    (literal (string-append (param "HOME") "/.config/enclave/config.toml"))
+    (regex (string-append "^" (param "WORKDIR") "/enclave\\.toml$"))
+    (regex (string-append "^" (param "WORKDIR") "/enclave\\.local\\.toml$"))
 )
 `
 
