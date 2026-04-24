@@ -74,7 +74,7 @@ func ResolveConfigPaths() ConfigPaths {
 }
 
 // Load loads and merges configs from all scopes in order:
-//  1. user   (~/.config/enclave/config.toml)
+//  1. user    (~/.config/enclave/config.toml)
 //  2. project (./enclave.toml in workdir)
 //  3. local   (./enclave.local.toml in workdir)
 //

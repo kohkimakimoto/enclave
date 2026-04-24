@@ -21,13 +21,13 @@ Configuration:
 Example Usage:
    # Run a command in a sandboxed environment
    $ enclave run claude --dangerously-skip-permissions
-   $ enclave run copilot
+   $ enclave run copilot --allow-all
 
    # Run with a custom config file
-   $ enclave run --config copilot-sandbox.toml copilot
+   $ enclave run --config enclave-custom.toml copilot
 
    # Use -- to separate enclave options from command arguments
-   $ enclave run --config my.toml -- copilot -p "hello"
+   $ enclave run --config enclave-custom.toml -- claude -p "hello"
 
    # Create project-specific config file
    $ enclave init
