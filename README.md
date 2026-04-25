@@ -64,11 +64,14 @@ make build
 Use `enclave run` to run any command inside the sandbox:
 
 ```bash
-# Run Claude Code in the sandbox
-enclave run -- claude --dangerously-skip-permissions
-
 # Run GitHub Copilot CLI in the sandbox
 enclave run copilot
+
+# Run Claude Code in the sandbox
+enclave run claude
+
+# Run Claude Code with a flag
+enclave run -- claude --dangerously-skip-permissions
 
 # Run any arbitrary command
 enclave run -- ls -la
@@ -76,11 +79,11 @@ enclave run -- ls -la
 
 When passing flags to the command, use `--` to distinguish them from enclave's own options. Without it, flags like `--dangerously-skip-permissions` would be interpreted as enclave options and cause an error. If the command takes no flags, `--` can be omitted.
 
-Use `--config` to specify a custom configuration file:
+Use `--config` (or `-c`) to specify a custom configuration file:
 
 ```bash
-enclave run --config copilot-sandbox.toml copilot
-enclave run --config my.toml -- claude -p "hello"
+enclave run -c copilot-sandbox.toml copilot
+enclave run -c my.toml -- claude -p "hello"
 ```
 
 ## Configuration File
@@ -154,7 +157,7 @@ unboxexec_allowed_commands = [
 | Key | Type | Description |
 |-----|------|-------------|
 | `sandbox_profile` | String | The sandbox-exec profile content. If not set, a built-in default profile is used. Use TOML multiline literal strings (`'''`) for readability. |
-| `unboxexec_allowed_commands` | Array of strings | Regex patterns that define which commands are allowed to execute via `unboxexec`. The command and arguments are joined with spaces and matched against each pattern. If any pattern matches, the command is permitted. |
+| `unboxexec_allowed_commands` | Array of strings | Regex patterns that define which commands are allowed to execute via `unboxexec`. The command and arguments are joined with spaces and matched against each pattern. If any pattern matches, the command is permitted. See [Sandbox-External Command Execution](#sandbox-external-command-execution). |
 
 ### Sandbox Profile Parameters
 
