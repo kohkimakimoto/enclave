@@ -59,17 +59,6 @@ const DefaultProfile = `(version 1)
     (regex (string-append "^" (param "WORKDIR") "/enclave\\.toml$"))
     (regex (string-append "^" (param "WORKDIR") "/enclave\\.local\\.toml$"))
 )
-
-;; Prevent read access to sensitive files.
-(deny file-read*
-    (subpath (string-append (param "HOME") "/.ssh"))
-    (regex #"(^|/)\.env$")
-)
-
-;; Prevent SSH agent socket access.
-(deny network*
-    (remote unix-socket (path-regex #"^/private/tmp/com\.apple\.launchd\..*/Listeners$"))
-)
 `
 
 // CommentedDefaultProfile returns the DefaultProfile with each line prefixed by "# ".
