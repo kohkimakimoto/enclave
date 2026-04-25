@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/skill"
+	"github.com/kohkimakimoto/enclave/v3/internal/skill"
 	"github.com/urfave/cli/v3"
 )
 
@@ -18,7 +18,7 @@ func SkillCommand() *cli.Command {
 			&cli.BoolFlag{
 				Name:    "install",
 				Aliases: []string{"i"},
-				Usage:   "Install the skill to .claude/skills/claude-sandbox/SKILL.md",
+				Usage:   "Install the skill to .claude/skills/enclave/SKILL.md",
 			},
 		},
 		Action: skillAction,
@@ -34,7 +34,7 @@ func skillAction(ctx context.Context, cmd *cli.Command) error {
 }
 
 func skillInstall(cmd *cli.Command) error {
-	dest := filepath.Join(".claude", "skills", "claude-sandbox", "SKILL.md")
+	dest := filepath.Join(".claude", "skills", "enclave", "SKILL.md")
 
 	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)

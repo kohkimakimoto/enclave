@@ -22,6 +22,12 @@ const DefaultProfile = `(version 1)
     ;; Keychain access for Claude Code credentials
     (subpath (string-append (param "HOME") "/Library/Keychains"))
 
+    ;; Github Copilot
+    (subpath (string-append (param "HOME") "/.copilot"))
+
+	;; OpenCode
+	(subpath (string-append (param "HOME") "/.opencode"))
+
     ;; Temporary directories and files
     (subpath "/tmp")
     (subpath "/var/folders")
@@ -34,6 +40,11 @@ const DefaultProfile = `(version 1)
     (subpath (string-append (param "HOME") "/Library/Caches"))
     (regex (string-append "^" (param "HOME") "/\\.viminfo"))
 
+    ;; XDG directories
+    (subpath (string-append (param "HOME") "/.config"))
+    (subpath (string-append (param "HOME") "/.local/share"))
+    (subpath (string-append (param "HOME") "/.local/state"))
+
     ;; devices
     (literal "/dev/stdout")
     (literal "/dev/stderr")
@@ -42,11 +53,11 @@ const DefaultProfile = `(version 1)
     (regex #"^/dev/tty*")
 )
 
-;; Prevent Claude Code from modifying sandbox config files.
+;; Prevent modification of enclave config files to avoid sandbox escape via config changes
 (deny file-write*
-    (literal (string-append (param "HOME") "/.claude/sandbox.toml"))
-    (regex (string-append "^" (param "WORKDIR") "/\\.claude/sandbox\\.toml$"))
-    (regex (string-append "^" (param "WORKDIR") "/\\.claude/sandbox\\.local\\.toml$"))
+    (literal (string-append (param "HOME") "/.config/enclave/config.toml"))
+    (regex (string-append "^" (param "WORKDIR") "/enclave\\.toml$"))
+    (regex (string-append "^" (param "WORKDIR") "/enclave\\.local\\.toml$"))
 )
 `
 
@@ -75,7 +86,7 @@ func BuildProfile(profileContent string) (profilePath string, cleanup func(), er
 	}
 
 	// Write to temporary file
-	tmpFile, err := os.CreateTemp("", "claude-sandbox-profile-*.sb")
+	tmpFile, err := os.CreateTemp("", "enclave-profile-*.sb")
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to create temp file: %w", err)
 	}

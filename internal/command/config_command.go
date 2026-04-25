@@ -4,28 +4,65 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/config"
+	"github.com/kohkimakimoto/enclave/v3/internal/config"
 	"github.com/urfave/cli/v3"
 )
 
 func ConfigCommand() *cli.Command {
 	return &cli.Command{
-		Name:   "config",
-		Usage:  "Print the effective configuration and exit",
+		Name:  "config",
+		Usage: "Print the effective configuration and exit",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "Path to a config file (overrides automatic config resolution)",
+			},
+		},
 		Action: configAction,
 	}
 }
 
 func configAction(ctx context.Context, cmd *cli.Command) error {
+	w := cmd.Root().Writer
+
+	// --config flag takes highest priority
+	if configPath := cmd.String("config"); configPath != "" {
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			return fmt.Errorf("config file not found: %s", configPath)
+		}
+		cfg, err := config.LoadFile(configPath)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(w, "# Loaded config files:\n")
+		fmt.Fprintf(w, "#   --config: %s\n", configPath)
+		fmt.Fprintf(w, "\n")
+		printConfigValues(w, cfg)
+		return nil
+	}
+
+	// Inside sandbox: ENCLAVE_CONFIG points to the effective config dump
+	if enclaveConfig := os.Getenv("ENCLAVE_CONFIG"); enclaveConfig != "" {
+		cfg, err := config.LoadFile(enclaveConfig)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(w, "# Loaded config files:\n")
+		fmt.Fprintf(w, "#   ENCLAVE_CONFIG: %s\n", enclaveConfig)
+		fmt.Fprintf(w, "\n")
+		printConfigValues(w, cfg)
+		return nil
+	}
+
 	paths := config.ResolveConfigPaths()
 	cfg, err := config.Load()
 	if err != nil {
 		return err
 	}
-
-	w := cmd.Root().Writer
 	printConfig(w, paths, cfg)
 	return nil
 }
@@ -43,24 +80,22 @@ func printConfig(w io.Writer, paths config.ConfigPaths, cfg *config.Config) {
 	fmt.Fprintf(w, "#   project: %s\n", noneIfEmpty(paths.Project))
 	fmt.Fprintf(w, "#   local:   %s\n", noneIfEmpty(paths.Local))
 	fmt.Fprintf(w, "\n")
+	printConfigValues(w, cfg)
+}
 
-	fmt.Fprintf(w, "[sandbox]\n")
-	fmt.Fprintf(w, "workdir    = %s\n", tomlString(cfg.Sandbox.Workdir))
-	fmt.Fprintf(w, "claude_bin = %s\n", tomlString(cfg.Sandbox.ClaudeBin))
-	if cfg.Sandbox.Profile == "" {
-		fmt.Fprintf(w, "profile    = \"\"\n")
+func printConfigValues(w io.Writer, cfg *config.Config) {
+	if cfg.SandboxProfile == "" {
+		fmt.Fprintf(w, "sandbox_profile = \"\"\n")
 	} else {
-		fmt.Fprintf(w, "profile    = %s\n", tomlMultilineString(cfg.Sandbox.Profile))
+		fmt.Fprintf(w, "sandbox_profile = %s\n", tomlMultilineString(cfg.SandboxProfile))
 	}
-	fmt.Fprintf(w, "\n")
 
-	fmt.Fprintf(w, "[unboxexec]\n")
-	if len(cfg.Unboxexec.AllowedCommands) == 0 {
-		fmt.Fprintf(w, "allowed_commands = []\n")
+	if len(cfg.UnboxexecAllowedCommands) == 0 {
+		fmt.Fprintf(w, "unboxexec_allowed_commands = []\n")
 	} else {
-		fmt.Fprintf(w, "allowed_commands = [\n")
-		for _, cmd := range cfg.Unboxexec.AllowedCommands {
-			fmt.Fprintf(w, "  %s,\n", tomlString(cmd))
+		fmt.Fprintf(w, "unboxexec_allowed_commands = [\n")
+		for _, c := range cfg.UnboxexecAllowedCommands {
+			fmt.Fprintf(w, "  %s,\n", tomlString(c))
 		}
 		fmt.Fprintf(w, "]\n")
 	}

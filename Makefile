@@ -4,7 +4,7 @@ SHELL := bash
 PATH := $(CURDIR)/.dev/go-tools/bin:$(PATH)
 COMMIT_HASH := $(shell git rev-parse --short HEAD)
 
-BUILD_LDFLAGS = "-s -w -X github.com/kohkimakimoto/claude-sandbox/v2/internal/version.CommitHash=$(COMMIT_HASH)"
+BUILD_LDFLAGS = "-s -w -X github.com/kohkimakimoto/enclave/v3/internal/version.CommitHash=$(COMMIT_HASH)"
 
 # Load .env file if it exists.
 ifneq (,$(wildcard ./.env))
@@ -42,12 +42,12 @@ clean: ## Clean up development environment
 .PHONY: build
 build: ## Build dev binary
 	@mkdir -p .dev/build/dev
-	@CGO_ENABLED=0 go build -ldflags=$(BUILD_LDFLAGS) -o .dev/build/dev/claude-sandbox ./cmd/claude-sandbox
+	@CGO_ENABLED=0 go build -ldflags=$(BUILD_LDFLAGS) -o .dev/build/dev/enclave ./cmd/enclave
 
 .PHONY: build-release
 build-release: ## Build release binary
 	@mkdir -p .dev/build/release
-	@CGO_ENABLED=0 go build -ldflags=$(BUILD_LDFLAGS) -trimpath -o .dev/build/release/claude-sandbox ./cmd/claude-sandbox
+	@CGO_ENABLED=0 go build -ldflags=$(BUILD_LDFLAGS) -trimpath -o .dev/build/release/enclave ./cmd/enclave
 
 .PHONY: build-clean
 build-clean: ## Clean up build artifacts

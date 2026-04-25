@@ -9,7 +9,7 @@ import (
 )
 
 func TestInitCommand(t *testing.T) {
-	t.Run("creates .claude/sandbox.toml in the working directory", func(t *testing.T) {
+	t.Run("creates enclave.toml in the working directory", func(t *testing.T) {
 		dir := testChdirTemp(t)
 
 		cmd := InitCommand()
@@ -19,7 +19,7 @@ func TestInitCommand(t *testing.T) {
 			t.Fatalf("init failed: %v", err)
 		}
 
-		configFile := filepath.Join(dir, ".claude", "sandbox.toml")
+		configFile := filepath.Join(dir, "enclave.toml")
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
 			t.Errorf("expected config file to exist: %s", configFile)
 		}
@@ -28,11 +28,7 @@ func TestInitCommand(t *testing.T) {
 	t.Run("fails if config file already exists", func(t *testing.T) {
 		dir := testChdirTemp(t)
 
-		// Pre-create the config file
-		if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		existing := filepath.Join(dir, ".claude", "sandbox.toml")
+		existing := filepath.Join(dir, "enclave.toml")
 		if err := os.WriteFile(existing, []byte(""), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -43,5 +39,26 @@ func TestInitCommand(t *testing.T) {
 		if err := cmd.Run(context.Background(), []string{"init"}); err == nil {
 			t.Error("expected error when config file already exists, got nil")
 		}
+	})
+
+	t.Run("generated file uses flat schema (no sections)", func(t *testing.T) {
+		dir := testChdirTemp(t)
+
+		cmd := InitCommand()
+		cmd.Writer = &bytes.Buffer{}
+
+		if err := cmd.Run(context.Background(), []string{"init"}); err != nil {
+			t.Fatalf("init failed: %v", err)
+		}
+
+		content, err := os.ReadFile(filepath.Join(dir, "enclave.toml"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := string(content)
+		assertContains(t, got, "sandbox_profile")
+		assertContains(t, got, "unboxexec_allowed_commands")
+		assertNotContains(t, got, "[sandbox]")
+		assertNotContains(t, got, "[unboxexec]")
 	})
 }

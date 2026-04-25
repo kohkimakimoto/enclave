@@ -10,8 +10,7 @@ func TestLoadValidConfig(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
 	content := `
-[unboxexec]
-allowed_commands = [
+unboxexec_allowed_commands = [
     "^playwright",
     "^echo hello",
 ]
@@ -25,28 +24,24 @@ allowed_commands = [
 		t.Fatalf("LoadFile failed: %v", err)
 	}
 
-	if len(cfg.Unboxexec.AllowedCommands) != 2 {
-		t.Fatalf("expected 2 allowed_commands, got %d", len(cfg.Unboxexec.AllowedCommands))
+	if len(cfg.UnboxexecAllowedCommands) != 2 {
+		t.Fatalf("expected 2 unboxexec_allowed_commands, got %d", len(cfg.UnboxexecAllowedCommands))
 	}
-	if cfg.Unboxexec.AllowedCommands[0] != "^playwright" {
-		t.Errorf("expected %q, got %q", "^playwright", cfg.Unboxexec.AllowedCommands[0])
+	if cfg.UnboxexecAllowedCommands[0] != "^playwright" {
+		t.Errorf("expected %q, got %q", "^playwright", cfg.UnboxexecAllowedCommands[0])
 	}
-	if cfg.Unboxexec.AllowedCommands[1] != "^echo hello" {
-		t.Errorf("expected %q, got %q", "^echo hello", cfg.Unboxexec.AllowedCommands[1])
+	if cfg.UnboxexecAllowedCommands[1] != "^echo hello" {
+		t.Errorf("expected %q, got %q", "^echo hello", cfg.UnboxexecAllowedCommands[1])
 	}
 }
 
-func TestLoadConfigWithSandboxSection(t *testing.T) {
+func TestLoadConfigWithSandboxProfile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
 	content := `
-[sandbox]
-profile = "(version 1)\n(allow default)"
-workdir = "/tmp/myworkdir"
-claude_bin = "/usr/local/bin/claude"
+sandbox_profile = "(version 1)\n(allow default)"
 
-[unboxexec]
-allowed_commands = [
+unboxexec_allowed_commands = [
     "^playwright-cli",
 ]
 `
@@ -59,17 +54,11 @@ allowed_commands = [
 		t.Fatalf("LoadFile failed: %v", err)
 	}
 
-	if cfg.Sandbox.Profile != "(version 1)\n(allow default)" {
-		t.Errorf("expected profile %q, got %q", "(version 1)\n(allow default)", cfg.Sandbox.Profile)
+	if cfg.SandboxProfile != "(version 1)\n(allow default)" {
+		t.Errorf("expected profile %q, got %q", "(version 1)\n(allow default)", cfg.SandboxProfile)
 	}
-	if cfg.Sandbox.Workdir != "/tmp/myworkdir" {
-		t.Errorf("expected workdir %q, got %q", "/tmp/myworkdir", cfg.Sandbox.Workdir)
-	}
-	if cfg.Sandbox.ClaudeBin != "/usr/local/bin/claude" {
-		t.Errorf("expected claude_bin %q, got %q", "/usr/local/bin/claude", cfg.Sandbox.ClaudeBin)
-	}
-	if len(cfg.Unboxexec.AllowedCommands) != 1 {
-		t.Fatalf("expected 1 allowed_commands, got %d", len(cfg.Unboxexec.AllowedCommands))
+	if len(cfg.UnboxexecAllowedCommands) != 1 {
+		t.Fatalf("expected 1 unboxexec_allowed_commands, got %d", len(cfg.UnboxexecAllowedCommands))
 	}
 }
 
@@ -77,8 +66,7 @@ func TestLoadConfigWithMultilineProfile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
 	content := `
-[sandbox]
-profile = '''
+sandbox_profile = '''
 (version 1)
 (allow default)
 (deny file-write*)
@@ -95,17 +83,16 @@ profile = '''
 
 	// TOML multiline literal strings (''') strip the first newline
 	expected := "(version 1)\n(allow default)\n(deny file-write*)\n"
-	if cfg.Sandbox.Profile != expected {
-		t.Errorf("expected profile %q, got %q", expected, cfg.Sandbox.Profile)
+	if cfg.SandboxProfile != expected {
+		t.Errorf("expected profile %q, got %q", expected, cfg.SandboxProfile)
 	}
 }
 
-func TestLoadConfigSandboxDefaults(t *testing.T) {
+func TestLoadConfigDefaults(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
 	content := `
-[unboxexec]
-allowed_commands = ["^echo"]
+unboxexec_allowed_commands = ["^echo"]
 `
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
@@ -116,15 +103,8 @@ allowed_commands = ["^echo"]
 		t.Fatalf("LoadFile failed: %v", err)
 	}
 
-	// Sandbox fields should be zero values when not specified
-	if cfg.Sandbox.Profile != "" {
-		t.Errorf("expected empty profile, got %q", cfg.Sandbox.Profile)
-	}
-	if cfg.Sandbox.Workdir != "" {
-		t.Errorf("expected empty workdir, got %q", cfg.Sandbox.Workdir)
-	}
-	if cfg.Sandbox.ClaudeBin != "" {
-		t.Errorf("expected empty claude_bin, got %q", cfg.Sandbox.ClaudeBin)
+	if cfg.SandboxProfile != "" {
+		t.Errorf("expected empty sandbox_profile, got %q", cfg.SandboxProfile)
 	}
 }
 
@@ -136,8 +116,8 @@ func TestLoadEmptyPath(t *testing.T) {
 	if cfg == nil {
 		t.Fatal("expected non-nil config")
 	}
-	if len(cfg.Unboxexec.AllowedCommands) != 0 {
-		t.Errorf("expected empty allowed_commands, got %d", len(cfg.Unboxexec.AllowedCommands))
+	if len(cfg.UnboxexecAllowedCommands) != 0 {
+		t.Errorf("expected empty unboxexec_allowed_commands, got %d", len(cfg.UnboxexecAllowedCommands))
 	}
 }
 
@@ -149,8 +129,8 @@ func TestLoadMissingFile(t *testing.T) {
 	if cfg == nil {
 		t.Fatal("expected non-nil config")
 	}
-	if len(cfg.Unboxexec.AllowedCommands) != 0 {
-		t.Errorf("expected empty allowed_commands, got %d", len(cfg.Unboxexec.AllowedCommands))
+	if len(cfg.UnboxexecAllowedCommands) != 0 {
+		t.Errorf("expected empty unboxexec_allowed_commands, got %d", len(cfg.UnboxexecAllowedCommands))
 	}
 }
 
@@ -177,7 +157,6 @@ func TestCompileAllowedCommands(t *testing.T) {
 		t.Fatalf("expected 2 compiled patterns, got %d", len(compiled))
 	}
 
-	// Test matching
 	if !compiled[0].MatchString("playwright install chromium") {
 		t.Error("expected pattern to match 'playwright install chromium'")
 	}
@@ -211,106 +190,73 @@ func TestCompileAllowedCommandsInvalidPattern(t *testing.T) {
 
 func TestMergeIntoOverridesNonEmpty(t *testing.T) {
 	dst := &Config{
-		Sandbox: SandboxConfig{
-			Profile:   "old-profile",
-			Workdir:   "/old",
-			ClaudeBin: "/old/claude",
-		},
-		Unboxexec: UnboxexecConfig{
-			AllowedCommands: []string{"^old"},
-		},
+		SandboxProfile:           "old-profile",
+		UnboxexecAllowedCommands: []string{"^old"},
 	}
 	src := &Config{
-		Sandbox: SandboxConfig{
-			Profile:   "new-profile",
-			Workdir:   "/new",
-			ClaudeBin: "/new/claude",
-		},
-		Unboxexec: UnboxexecConfig{
-			AllowedCommands: []string{"^new"},
-		},
+		SandboxProfile:           "new-profile",
+		UnboxexecAllowedCommands: []string{"^new"},
 	}
 	mergeInto(dst, src)
 
-	if dst.Sandbox.Profile != "new-profile" {
-		t.Errorf("expected profile %q, got %q", "new-profile", dst.Sandbox.Profile)
+	if dst.SandboxProfile != "new-profile" {
+		t.Errorf("expected profile %q, got %q", "new-profile", dst.SandboxProfile)
 	}
-	if dst.Sandbox.Workdir != "/new" {
-		t.Errorf("expected workdir %q, got %q", "/new", dst.Sandbox.Workdir)
-	}
-	if dst.Sandbox.ClaudeBin != "/new/claude" {
-		t.Errorf("expected claude_bin %q, got %q", "/new/claude", dst.Sandbox.ClaudeBin)
-	}
-	if len(dst.Unboxexec.AllowedCommands) != 1 || dst.Unboxexec.AllowedCommands[0] != "^new" {
-		t.Errorf("expected allowed_commands [^new], got %v", dst.Unboxexec.AllowedCommands)
+	if len(dst.UnboxexecAllowedCommands) != 1 || dst.UnboxexecAllowedCommands[0] != "^new" {
+		t.Errorf("expected unboxexec_allowed_commands [^new], got %v", dst.UnboxexecAllowedCommands)
 	}
 }
 
 func TestMergeIntoKeepsDstWhenSrcEmpty(t *testing.T) {
 	dst := &Config{
-		Sandbox: SandboxConfig{
-			Profile:   "kept-profile",
-			Workdir:   "/kept",
-			ClaudeBin: "/kept/claude",
-		},
-		Unboxexec: UnboxexecConfig{
-			AllowedCommands: []string{"^kept"},
-		},
+		SandboxProfile:           "kept-profile",
+		UnboxexecAllowedCommands: []string{"^kept"},
 	}
 	src := &Config{}
 	mergeInto(dst, src)
 
-	if dst.Sandbox.Profile != "kept-profile" {
-		t.Errorf("expected profile to be kept, got %q", dst.Sandbox.Profile)
+	if dst.SandboxProfile != "kept-profile" {
+		t.Errorf("expected profile to be kept, got %q", dst.SandboxProfile)
 	}
-	if dst.Sandbox.Workdir != "/kept" {
-		t.Errorf("expected workdir to be kept, got %q", dst.Sandbox.Workdir)
-	}
-	if dst.Sandbox.ClaudeBin != "/kept/claude" {
-		t.Errorf("expected claude_bin to be kept, got %q", dst.Sandbox.ClaudeBin)
-	}
-	if len(dst.Unboxexec.AllowedCommands) != 1 || dst.Unboxexec.AllowedCommands[0] != "^kept" {
-		t.Errorf("expected allowed_commands to be kept, got %v", dst.Unboxexec.AllowedCommands)
+	if len(dst.UnboxexecAllowedCommands) != 1 || dst.UnboxexecAllowedCommands[0] != "^kept" {
+		t.Errorf("expected unboxexec_allowed_commands to be kept, got %v", dst.UnboxexecAllowedCommands)
 	}
 }
 
 // --- Load tests ---
 
-// setupHome temporarily overrides HOME and creates the .claude dir.
-// Returns cleanup func.
-func setupHome(t *testing.T, dir string) func() {
+// setupXDGConfig temporarily overrides XDG_CONFIG_HOME to a temp directory.
+func setupXDGConfig(t *testing.T) (configDir string) {
 	t.Helper()
-	orig := os.Getenv("HOME")
-	if err := os.Setenv("HOME", dir); err != nil {
-		t.Fatalf("failed to set HOME: %v", err)
+	tmpDir := t.TempDir()
+	orig := os.Getenv("XDG_CONFIG_HOME")
+	if err := os.Setenv("XDG_CONFIG_HOME", tmpDir); err != nil {
+		t.Fatalf("failed to set XDG_CONFIG_HOME: %v", err)
 	}
-	if err := os.MkdirAll(filepath.Join(dir, ".claude"), 0o755); err != nil {
-		t.Fatalf("failed to create home .claude dir: %v", err)
-	}
-	return func() {
-		if err := os.Setenv("HOME", orig); err != nil {
-			t.Errorf("failed to restore HOME: %v", err)
+	t.Cleanup(func() {
+		if err := os.Setenv("XDG_CONFIG_HOME", orig); err != nil {
+			t.Errorf("failed to restore XDG_CONFIG_HOME: %v", err)
 		}
+	})
+	// UserConfigDir() returns filepath.Join(XDG_CONFIG_HOME, "enclave")
+	configDir = filepath.Join(tmpDir, "enclave")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		t.Fatalf("failed to create config dir: %v", err)
 	}
+	return configDir
 }
 
 func TestLoadUserOnly(t *testing.T) {
-	tmpHome := t.TempDir()
-	cleanup := setupHome(t, tmpHome)
-	defer cleanup()
+	configDir := setupXDGConfig(t)
 
-	// Write user config
-	userCfgPath := filepath.Join(tmpHome, ".claude", "sandbox.toml")
+	userCfgPath := filepath.Join(configDir, "config.toml")
 	if err := os.WriteFile(userCfgPath, []byte(`
-[sandbox]
-workdir = "/from-user"
-[unboxexec]
-allowed_commands = ["^user-cmd"]
+sandbox_profile = "from-user"
+unboxexec_allowed_commands = ["^user-cmd"]
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	// Change to a temp dir with no project/local configs
 	wd := t.TempDir()
 	origWd, err := os.Getwd()
 	if err != nil {
@@ -319,42 +265,31 @@ allowed_commands = ["^user-cmd"]
 	if err := os.Chdir(wd); err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		if err := os.Chdir(origWd); err != nil {
-			t.Errorf("failed to restore workdir: %v", err)
-		}
-	}()
+	defer func() { _ = os.Chdir(origWd) }()
 
 	cfg, err := Load()
 	if err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
-	if cfg.Sandbox.Workdir != "/from-user" {
-		t.Errorf("expected workdir from user config, got %q", cfg.Sandbox.Workdir)
+	if cfg.SandboxProfile != "from-user" {
+		t.Errorf("expected sandbox_profile from user config, got %q", cfg.SandboxProfile)
 	}
-	if len(cfg.Unboxexec.AllowedCommands) != 1 || cfg.Unboxexec.AllowedCommands[0] != "^user-cmd" {
-		t.Errorf("expected allowed_commands from user config, got %v", cfg.Unboxexec.AllowedCommands)
+	if len(cfg.UnboxexecAllowedCommands) != 1 || cfg.UnboxexecAllowedCommands[0] != "^user-cmd" {
+		t.Errorf("expected unboxexec_allowed_commands from user config, got %v", cfg.UnboxexecAllowedCommands)
 	}
 }
 
 func TestLoadProjectOverridesUser(t *testing.T) {
-	tmpHome := t.TempDir()
-	cleanup := setupHome(t, tmpHome)
-	defer cleanup()
+	configDir := setupXDGConfig(t)
 
-	// Write user config
-	userCfgPath := filepath.Join(tmpHome, ".claude", "sandbox.toml")
+	userCfgPath := filepath.Join(configDir, "config.toml")
 	if err := os.WriteFile(userCfgPath, []byte(`
-[sandbox]
-workdir = "/from-user"
-claude_bin = "/user/claude"
-[unboxexec]
-allowed_commands = ["^user-cmd"]
+sandbox_profile = "from-user"
+unboxexec_allowed_commands = ["^user-cmd"]
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	// Set up workdir with project config
 	wd := t.TempDir()
 	origWd, err := os.Getwd()
 	if err != nil {
@@ -363,21 +298,11 @@ allowed_commands = ["^user-cmd"]
 	if err := os.Chdir(wd); err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		if err := os.Chdir(origWd); err != nil {
-			t.Errorf("failed to restore workdir: %v", err)
-		}
-	}()
+	defer func() { _ = os.Chdir(origWd) }()
 
-	if err := os.MkdirAll(filepath.Join(wd, ".claude"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	projectCfgPath := filepath.Join(wd, ".claude", "sandbox.toml")
+	projectCfgPath := filepath.Join(wd, "enclave.toml")
 	if err := os.WriteFile(projectCfgPath, []byte(`
-[sandbox]
-workdir = "/from-project"
-[unboxexec]
-allowed_commands = ["^project-cmd"]
+unboxexec_allowed_commands = ["^project-cmd"]
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -386,36 +311,26 @@ allowed_commands = ["^project-cmd"]
 	if err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
-	// project overrides user workdir and allowed_commands
-	if cfg.Sandbox.Workdir != "/from-project" {
-		t.Errorf("expected workdir from project config, got %q", cfg.Sandbox.Workdir)
-	}
-	if len(cfg.Unboxexec.AllowedCommands) != 1 || cfg.Unboxexec.AllowedCommands[0] != "^project-cmd" {
-		t.Errorf("expected allowed_commands from project config, got %v", cfg.Unboxexec.AllowedCommands)
+	// project overrides allowed_commands
+	if len(cfg.UnboxexecAllowedCommands) != 1 || cfg.UnboxexecAllowedCommands[0] != "^project-cmd" {
+		t.Errorf("expected unboxexec_allowed_commands from project config, got %v", cfg.UnboxexecAllowedCommands)
 	}
 	// user-only field is kept
-	if cfg.Sandbox.ClaudeBin != "/user/claude" {
-		t.Errorf("expected claude_bin from user config, got %q", cfg.Sandbox.ClaudeBin)
+	if cfg.SandboxProfile != "from-user" {
+		t.Errorf("expected sandbox_profile from user config, got %q", cfg.SandboxProfile)
 	}
 }
 
 func TestLoadLocalOverridesAll(t *testing.T) {
-	tmpHome := t.TempDir()
-	cleanup := setupHome(t, tmpHome)
-	defer cleanup()
+	configDir := setupXDGConfig(t)
 
-	// Write user config
-	userCfgPath := filepath.Join(tmpHome, ".claude", "sandbox.toml")
+	userCfgPath := filepath.Join(configDir, "config.toml")
 	if err := os.WriteFile(userCfgPath, []byte(`
-[sandbox]
-workdir = "/from-user"
-[unboxexec]
-allowed_commands = ["^user-cmd"]
+unboxexec_allowed_commands = ["^user-cmd"]
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	// Set up workdir with project and local configs
 	wd := t.TempDir()
 	origWd, err := os.Getwd()
 	if err != nil {
@@ -424,28 +339,15 @@ allowed_commands = ["^user-cmd"]
 	if err := os.Chdir(wd); err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		if err := os.Chdir(origWd); err != nil {
-			t.Errorf("failed to restore workdir: %v", err)
-		}
-	}()
+	defer func() { _ = os.Chdir(origWd) }()
 
-	if err := os.MkdirAll(filepath.Join(wd, ".claude"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	projectCfgPath := filepath.Join(wd, ".claude", "sandbox.toml")
-	if err := os.WriteFile(projectCfgPath, []byte(`
-[sandbox]
-workdir = "/from-project"
-[unboxexec]
-allowed_commands = ["^project-cmd"]
+	if err := os.WriteFile(filepath.Join(wd, "enclave.toml"), []byte(`
+unboxexec_allowed_commands = ["^project-cmd"]
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	localCfgPath := filepath.Join(wd, ".claude", "sandbox.local.toml")
-	if err := os.WriteFile(localCfgPath, []byte(`
-[unboxexec]
-allowed_commands = ["^local-cmd"]
+	if err := os.WriteFile(filepath.Join(wd, "enclave.local.toml"), []byte(`
+unboxexec_allowed_commands = ["^local-cmd"]
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -454,20 +356,13 @@ allowed_commands = ["^local-cmd"]
 	if err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
-	// local overrides allowed_commands
-	if len(cfg.Unboxexec.AllowedCommands) != 1 || cfg.Unboxexec.AllowedCommands[0] != "^local-cmd" {
-		t.Errorf("expected allowed_commands from local config, got %v", cfg.Unboxexec.AllowedCommands)
-	}
-	// project workdir is kept (local didn't set it)
-	if cfg.Sandbox.Workdir != "/from-project" {
-		t.Errorf("expected workdir from project config, got %q", cfg.Sandbox.Workdir)
+	if len(cfg.UnboxexecAllowedCommands) != 1 || cfg.UnboxexecAllowedCommands[0] != "^local-cmd" {
+		t.Errorf("expected unboxexec_allowed_commands from local config, got %v", cfg.UnboxexecAllowedCommands)
 	}
 }
 
 func TestLoadNoConfigsReturnsEmpty(t *testing.T) {
-	tmpHome := t.TempDir()
-	cleanup := setupHome(t, tmpHome)
-	defer cleanup()
+	setupXDGConfig(t) // sets XDG_CONFIG_HOME to empty temp dir (no config.toml inside)
 
 	wd := t.TempDir()
 	origWd, err := os.Getwd()
@@ -477,20 +372,41 @@ func TestLoadNoConfigsReturnsEmpty(t *testing.T) {
 	if err := os.Chdir(wd); err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		if err := os.Chdir(origWd); err != nil {
-			t.Errorf("failed to restore workdir: %v", err)
-		}
-	}()
+	defer func() { _ = os.Chdir(origWd) }()
 
 	cfg, err := Load()
 	if err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
-	if cfg.Sandbox.Profile != "" || cfg.Sandbox.Workdir != "" || cfg.Sandbox.ClaudeBin != "" {
-		t.Errorf("expected all sandbox fields empty, got %+v", cfg.Sandbox)
+	if cfg.SandboxProfile != "" {
+		t.Errorf("expected empty sandbox_profile, got %q", cfg.SandboxProfile)
 	}
-	if len(cfg.Unboxexec.AllowedCommands) != 0 {
-		t.Errorf("expected empty allowed_commands, got %v", cfg.Unboxexec.AllowedCommands)
+	if len(cfg.UnboxexecAllowedCommands) != 0 {
+		t.Errorf("expected empty unboxexec_allowed_commands, got %v", cfg.UnboxexecAllowedCommands)
+	}
+}
+
+func TestUserConfigDir_XDG(t *testing.T) {
+	orig := os.Getenv("XDG_CONFIG_HOME")
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", orig) }()
+
+	_ = os.Setenv("XDG_CONFIG_HOME", "/custom/xdg")
+	got := UserConfigDir()
+	expected := "/custom/xdg/enclave"
+	if got != expected {
+		t.Errorf("expected %q, got %q", expected, got)
+	}
+}
+
+func TestUserConfigDir_Fallback(t *testing.T) {
+	orig := os.Getenv("XDG_CONFIG_HOME")
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", orig) }()
+
+	_ = os.Setenv("XDG_CONFIG_HOME", "")
+	home, _ := os.UserHomeDir()
+	got := UserConfigDir()
+	expected := filepath.Join(home, ".config", "enclave")
+	if got != expected {
+		t.Errorf("expected %q, got %q", expected, got)
 	}
 }

@@ -1,19 +1,19 @@
 ---
-name: claude-sandbox
-description: A sandbox environment information. You should use this skill when you need to check if the sandbox is enabled or not, or when you need to execute commands outside the sandbox.
+name: enclave
+description: A sandbox environment. You should use this skill when you need to check if the sandbox is enabled or not, or when you need to execute commands outside the sandbox.
 ---
 
-# Claude Sandbox
+# Enclave
 
-Claude Code is executed within a sandboxed environment using `claude-sandbox`.
-This uses Apple's `sandbox-exec` to restrict access to unnecessary system resources.
+The `enclave` command is a tool for managing a sandboxed environment on macOS.
+It uses Apple's `sandbox-exec` to restrict access to unnecessary system resources.
 
 ## Checking the Sandbox Status
 
 Verify whether you are running inside the sandbox:
 
 ```bash
-echo $CLAUDE_SANDBOX
+echo $ENCLAVE_SANDBOX
 # => 1 (inside sandbox), or empty (not sandboxed)
 ```
 
@@ -22,7 +22,7 @@ echo $CLAUDE_SANDBOX
 To inspect the full `sandbox-exec` profile in effect (useful for troubleshooting permission errors):
 
 ```bash
-claude-sandbox profile
+enclave profile
 ```
 
 ## Checking the Effective Configuration
@@ -30,38 +30,33 @@ claude-sandbox profile
 Use the `config` subcommand to see the current effective configuration, including which config files are loaded and what commands are allowed for sandbox-bypass execution:
 
 ```bash
-claude-sandbox config
+enclave config
 ```
+
+Inside the sandbox, `enclave config` automatically reads the effective configuration that was resolved at startup (stored in `$ENCLAVE_CONFIG`), so it always reflects the actual settings in effect regardless of the current directory.
 
 Example output:
 
 ```toml
 # Loaded config files:
-#   user:    /Users/yourname/.claude/sandbox.toml
-#   project: .claude/sandbox.toml
-#   local:   (none)
+#   ENCLAVE_CONFIG: /tmp/enclave-config-12345.toml
 
-[sandbox]
-workdir    = ""
-claude_bin = ""
-profile    = ""
-
-[unboxexec]
-allowed_commands = [
+sandbox_profile = ""
+unboxexec_allowed_commands = [
   "^playwright-cli",
 ]
 ```
 
 ## Executing Commands Outside the Sandbox
 
-The `claude-sandbox unboxexec` subcommand executes commands outside the sandbox.
+The `enclave unboxexec` subcommand executes commands outside the sandbox.
 
-**Important:** `claude-sandbox unboxexec` bypasses sandbox protections. You MUST ask for explicit user approval before using it, UNLESS the command is listed in `allowed_commands`.
+**Important:** `enclave unboxexec` bypasses sandbox protections. You MUST ask for explicit user approval before using it, UNLESS the command is listed in `unboxexec_allowed_commands`.
 
 ### Basic Usage
 
 ```bash
-claude-sandbox unboxexec [<options>] -- <command> [<args...>]
+enclave unboxexec [<options>] -- <command> [<args...>]
 ```
 
 ### Options
@@ -76,16 +71,16 @@ claude-sandbox unboxexec [<options>] -- <command> [<args...>]
 
 ```bash
 # Execute a command outside the sandbox
-claude-sandbox unboxexec -- echo "hello from outside"
+enclave unboxexec -- echo "hello from outside"
 
 # Execute with a specified working directory
-claude-sandbox unboxexec --dir /tmp -- ls -la
+enclave unboxexec --dir /tmp -- ls -la
 
 # Execute with an extended timeout
-claude-sandbox unboxexec --timeout 300 -- long-running-command
+enclave unboxexec --timeout 300 -- long-running-command
 
 # Execute with environment variables
-claude-sandbox unboxexec --env API_KEY=secret --env DEBUG=1 -- my-command
+enclave unboxexec --env API_KEY=secret --env DEBUG=1 -- my-command
 ```
 
 ## Troubleshooting: When a Command Fails
@@ -93,7 +88,7 @@ claude-sandbox unboxexec --env API_KEY=secret --env DEBUG=1 -- my-command
 When you need to run a command that may fail due to sandbox restrictions:
 
 1. Try running the command normally inside the sandbox
-2. If it fails with a permission error, try `claude-sandbox unboxexec -- <command>`
-3. If that also fails, run `claude-sandbox config` and check `allowed_commands` under `[unboxexec]`
+2. If it fails with a permission error, try `enclave unboxexec -- <command>`
+3. If that also fails, run `enclave config` and check `unboxexec_allowed_commands`
 4. If the command matches an allowed pattern → it should be permitted; investigate the error further
 5. If the command does NOT match → ask the user for explicit approval before retrying

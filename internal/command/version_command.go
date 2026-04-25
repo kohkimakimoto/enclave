@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/version"
+	"github.com/kohkimakimoto/enclave/v3/internal/version"
 	"github.com/urfave/cli/v3"
 )
 

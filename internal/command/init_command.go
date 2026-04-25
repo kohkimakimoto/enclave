@@ -4,36 +4,27 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 
-	"github.com/kohkimakimoto/claude-sandbox/v2/internal/sandbox"
+	"github.com/kohkimakimoto/enclave/v3/internal/sandbox"
 	"github.com/urfave/cli/v3"
 )
 
-// projectConfigTemplate generates the template for project-specific sandbox.toml.
+// projectConfigTemplate generates the template for project-specific enclave.toml.
 func projectConfigTemplate() string {
-	return `# Project-specific configuration for claude-sandbox.
-# See https://github.com/kohkimakimoto/claude-sandbox
+	return `# Project-specific configuration for enclave.
+# See https://github.com/kohkimakimoto/enclave
 
-[sandbox]
 # Sandbox profile for sandbox-exec.
 # If not set, the built-in default profile is used.
-# profile = '''
+# sandbox_profile = '''
 ` + sandbox.CommentedDefaultProfile() + `
 # '''
 
-# Override working directory (optional).
-# workdir = "/path/to/workdir"
-
-# Override claude binary path (optional).
-# claude_bin = "/path/to/claude"
-
-[unboxexec]
-# Regex patterns for allowed commands.
+# Regex patterns for allowed commands in unboxexec.
 # The command + args joined by spaces is matched against each pattern.
 # If any pattern matches, the command is allowed.
 # If empty or not configured, all commands are rejected.
-allowed_commands = [
+unboxexec_allowed_commands = [
     # "^playwright-cli",
 ]
 `
@@ -42,22 +33,17 @@ allowed_commands = [
 func InitCommand() *cli.Command {
 	return &cli.Command{
 		Name:   "init",
-		Usage:  "Create .claude/sandbox.toml file if it doesn't exist",
+		Usage:  "Create enclave.toml file if it doesn't exist",
 		Action: initAction,
 	}
 }
 
 func initAction(ctx context.Context, cmd *cli.Command) error {
-	workdir := sandbox.GetWorkdir("")
-	configFile := filepath.Join(workdir, ".claude", "sandbox.toml")
+	wd, _ := os.Getwd()
+	configFile := wd + "/enclave.toml"
 
 	if _, err := os.Stat(configFile); err == nil {
 		return fmt.Errorf("config file already exists: %s", configFile)
-	}
-
-	// Create .claude directory if it doesn't exist
-	if err := os.MkdirAll(filepath.Join(workdir, ".claude"), 0o755); err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
 	if err := os.WriteFile(configFile, []byte(projectConfigTemplate()), 0o644); err != nil {
