@@ -1,6 +1,6 @@
 ---
 name: enclave
-description: A sandbox environment. You should use this skill when you need to check if the sandbox is enabled or not, or when you need to execute commands outside the sandbox.
+description: A sandbox environment. Only use this skill when running inside the sandbox (ENCLAVE_SANDBOX=1). If not in the sandbox, this skill is not needed. Use it when you need to check sandbox status or execute commands outside the sandbox.
 ---
 
 # Enclave
