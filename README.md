@@ -18,6 +18,7 @@ Table of Contents:
   - [Homebrew](#homebrew)
   - [Build from source](#build-from-source)
 - [Usage](#usage)
+  - [Useful Shell Aliases](#useful-shell-aliases)
 - [Configuration File](#configuration-file)
   - [Creating a Configuration File](#creating-a-configuration-file)
   - [Example](#example)
@@ -87,6 +88,20 @@ Use `--config` (or `-c`) to specify a custom configuration file:
 ```bash
 enclave run -c copilot-sandbox.toml copilot
 enclave run -c my.toml -- claude -p "hello"
+```
+
+### Useful Shell Aliases
+
+For frequently used commands, shell aliases can reduce repetition. The following are examples from the author's personal setup:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+
+# For Claude Code
+alias claude-sandbox="enclave run -- claude --dangerously-skip-permissions"
+
+# For Codex
+alias codex-sandbox="enclave run -- codex --yolo"
 ```
 
 ## Configuration File
